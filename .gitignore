@@ -1,1 +1,11 @@
+# Formats
+*.ipynb
+*.tdat
+*.tdat.gz
+#*.fits
 
+#Folders
+#GBM_burst_archive
+
+# Files
+GBM_bursts.fits
