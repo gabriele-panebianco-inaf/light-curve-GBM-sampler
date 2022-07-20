@@ -1,23 +1,23 @@
-2022-07-15 15:47:28,562. INFO: GBM Bursts Catalog: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/GBM_bursts_flnc_band.fits
-2022-07-15 15:47:28,563. INFO: Number of GRBs in the catalog: 2309.
-2022-07-15 15:47:28,563. INFO: Set Random seed: 0.
-2022-07-15 15:47:28,563. INFO: Transient GRB170131969 was randomly chosen.
+2022-07-20 15:24:54,346. INFO: GBM Bursts Catalog: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/GBM_bursts_flnc_band.fits
+2022-07-20 15:24:54,346. INFO: Number of GRBs in the catalog: 2309.
+2022-07-20 15:24:54,346. INFO: Set Random seed: 0.
+2022-07-20 15:24:54,346. INFO: Transient GRB170131969 was randomly chosen.
 
-2022-07-15 15:47:28,563. INFO: Galactic latitude and longitude in deg. l=109.68738061, b=4.41405297.
-2022-07-15 15:47:28,563. INFO: Spectral model: band. Type: flnc.
-2022-07-15 15:47:28,563. INFO: flnc_band_ampl : 0.0046723643 1 / (cm2 keV s)
-2022-07-15 15:47:28,563. INFO: flnc_band_epeak: 209.62816 keV
-2022-07-15 15:47:28,563. INFO: flnc_band_alpha: -1.4265831
-2022-07-15 15:47:28,563. INFO: flnc_band_beta : -2.9323575
-2022-07-15 15:47:28,563. INFO: flnc_band_epiv : 100.0 keV
-2022-07-15 15:47:28,564. INFO: flnc_band_phtflux : 2.0027208 1 / (cm2 s)
-2022-07-15 15:47:28,564. INFO: Polarization amplitude: 0.2697867137638703
-2022-07-15 15:47:28,564. INFO: Polarization phase: 7.375234308515044
-2022-07-15 15:47:28,564. INFO: Highest flux recorded in catalog at [15.872 s] from trigger time.
-2022-07-15 15:47:28,565. INFO: GBM t90 =23.0404 s.
-2022-07-15 15:47:28,565. INFO: Gaussian Pulse sigma=7.003784294989963 s.
-2022-07-15 15:47:28,566. INFO: Evaluate 200 time points in [-3.072 s,23.552 s]. Step = 0.13312 s.
-2022-07-15 15:47:28,567. INFO:         time                curve        
+2022-07-20 15:24:54,346. INFO: Galactic latitude and longitude in deg. l=109.68738061, b=4.41405297.
+2022-07-20 15:24:54,346. INFO: Spectral model: band. Type: flnc.
+2022-07-20 15:24:54,347. INFO: flnc_band_ampl : 0.0046723643 1 / (cm2 keV s)
+2022-07-20 15:24:54,347. INFO: flnc_band_epeak: 209.62816 keV
+2022-07-20 15:24:54,347. INFO: flnc_band_alpha: -1.4265831
+2022-07-20 15:24:54,347. INFO: flnc_band_beta : -2.9323575
+2022-07-20 15:24:54,347. INFO: flnc_band_epiv : 100.0 keV
+2022-07-20 15:24:54,347. INFO: flnc_band_phtflux : 2.0027208 1 / (cm2 s)
+2022-07-20 15:24:54,347. INFO: Polarization amplitude: 0.2697867137638703
+2022-07-20 15:24:54,347. INFO: Polarization phase: 7.375234308515044
+2022-07-20 15:24:54,348. INFO: Highest flux recorded in catalog at [15.872 s] from trigger time.
+2022-07-20 15:24:54,348. INFO: GBM t90 =23.0404 s.
+2022-07-20 15:24:54,348. INFO: Gaussian Pulse sigma=7.003784294989963 s.
+2022-07-20 15:24:54,350. INFO: Evaluate 200 time points in [-3.072 s,23.552 s]. Step = 0.13312 s.
+2022-07-20 15:24:54,350. INFO:         time                curve        
          s                  1 / s        
 ------------------- ---------------------
              -3.072 0.0014686317445657163
@@ -35,5 +35,6 @@
   23.41821105527638   0.03187810436801727
              23.552  0.031223003852516907
 Length = 200 rows
-2022-07-15 15:47:28,568. INFO: Print Gaussian Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves/Gauss_GRB170131969.dat
-2022-07-15 15:47:28,572. INFO: Total execution time: 1.073 s.
+2022-07-20 15:24:54,351. INFO: Print Gaussian Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves/Gauss_GRB170131969.dat
+2022-07-20 15:24:54,355. INFO: Write Source file: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/Sources/GRB170131969.source
+2022-07-20 15:24:54,356. INFO: Total execution time: 0.936 s.

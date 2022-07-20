@@ -1,0 +1,21 @@
+# Example run for Cosima, based on GRB170131969
+
+# Global parameters
+Version         1
+Geometry        $(MEGALIB)/resource/examples/geomega/mpesatellitebaseline/SatelliteWithACS.geo.setup
+
+#Physics list
+PhysicsListEM               LivermorePol
+
+#Output formats
+StoreSimulationInfo         all
+
+# Run & source parameters
+Run GRBSim
+GRBSim.FileName GRBOnlyObservation
+GRBSim.Time 1000.0
+GRBSim.Source GRB170131969
+GRB170131969.ParticleType           1
+GRB170131969.Beam                   FarFieldPointSource 0 0
+GRB170131969Spectrum               PowerLaw 100 10000 2.17
+GRB170131969.Flux                   0.0565

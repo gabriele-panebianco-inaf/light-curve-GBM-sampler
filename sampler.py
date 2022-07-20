@@ -157,7 +157,41 @@ if __name__ == '__main__':
 
     light_curve_output_name = Output_Directory+f"LightCurves/Gauss_{transient['name']}.dat"
     logger.info(f"Print Gaussian Light Curve: {light_curve_output_name}")
-    light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)  
+    light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)
+
+
+    # Write a source file
+    source_file_output_name = Output_Directory + f"Sources/{transient['name']}.source"
+    logger.info(f"Write Source file: {source_file_output_name}")
+    with open(source_file_output_name, 'w') as f:
+        f.write(f"# Example run for Cosima, based on {transient['name']}\n")
+        f.write("\n# Global parameters\n")
+        f.write(f"Version         {1}\n")
+        geometry_str = "$(MEGALIB)/resource/examples/geomega/mpesatellitebaseline/SatelliteWithACS.geo.setup"
+        f.write(f"Geometry        {geometry_str}\n")
+        f.write(f"\n#Physics list\n")
+        PhysicsListEM = "LivermorePol"
+        f.write(f"PhysicsListEM               {PhysicsListEM}\n")
+        f.write(f"\n#Output formats\n")
+        StoreSimulationInfo = "all"
+        f.write(f"StoreSimulationInfo         {StoreSimulationInfo}\n")
+        f.write(f"\n# Run & source parameters\n")
+
+        RunName = "GRBSim"
+        f.write(f"Run {RunName}\n")
+        RunName_FileName = "GRBOnlyObservation"
+        f.write(f"{RunName}.FileName {RunName_FileName}\n")
+        f.write(f"{RunName}.Time {1000.0}\n")
+
+        SourceName = transient['name']
+        f.write(f"{RunName}.Source {SourceName}\n")
+        f.write(f"{SourceName}.ParticleType           {1}\n")
+        SourceName_Beam = "FarFieldPointSource"
+        f.write(f"{SourceName}.Beam                   {SourceName_Beam} {0} {0}\n")
+        SourceName_Spectrum = "PowerLaw"
+        f.write(f"{SourceName}.Spectrum               {SourceName_Spectrum} {100} {10000} {2.17}\n")
+        f.write(f"{SourceName}.Flux                   {0.0565}\n")
+
 
 
     # End
