@@ -157,7 +157,13 @@ if __name__ == '__main__':
 
     light_curve_output_name = Output_Directory+f"LightCurves/Gauss_{transient['name']}.dat"
     logger.info(f"Print Gaussian Light Curve: {light_curve_output_name}")
-    light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)
+
+    with open(light_curve_output_name, 'w') as f:
+        f.write(f"IP LINLIN\n")
+        for row in light_curve_table:
+            f.write(f"DP {row['time'].value} {row['curve'].value}\n")
+        f.write(f"EN\n")
+    #light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)
 
 
     # Write a source file
@@ -165,32 +171,57 @@ if __name__ == '__main__':
     logger.info(f"Write Source file: {source_file_output_name}")
     with open(source_file_output_name, 'w') as f:
         f.write(f"# Example run for Cosima, based on {transient['name']}\n")
-        f.write("\n# Global parameters\n")
-        f.write(f"Version         {1}\n")
+        f.write(f"#This file is similar to template https://github.com/zoglauer/megalib/blob/main/resource/examples/cosima/source/CrabOnly.source \n")
+        
+        
+        f.write("\n# Global parameters !!! Should I print these? How do I choose them?\n")
+        version = 1
         geometry_str = "$(MEGALIB)/resource/examples/geomega/mpesatellitebaseline/SatelliteWithACS.geo.setup"
+        f.write(f"Version         {version}\n")
         f.write(f"Geometry        {geometry_str}\n")
-        f.write(f"\n#Physics list\n")
+        
+        
+        f.write(f"\n#Physics list !!! Should I print it? How do I choose it?\n")
         PhysicsListEM = "LivermorePol"
         f.write(f"PhysicsListEM               {PhysicsListEM}\n")
-        f.write(f"\n#Output formats\n")
+        
+        
+        f.write(f"\n#Output formats !!! Should I print it?\n")
         StoreSimulationInfo = "all"
         f.write(f"StoreSimulationInfo         {StoreSimulationInfo}\n")
+        
+        
         f.write(f"\n# Run & source parameters\n")
-
         RunName = "GRBSim"
-        f.write(f"Run {RunName}\n")
         RunName_FileName = "GRBOnlyObservation"
+        RunTime = 1000.0
+
+        f.write(f"Run {RunName}\n")
+
+        f.write("# !!! Should I print .FileName and .Time? How do I choose .Time?\n")
         f.write(f"{RunName}.FileName {RunName_FileName}\n")
-        f.write(f"{RunName}.Time {1000.0}\n")
+        f.write(f"{RunName}.Time {RunTime}\n")
 
         SourceName = transient['name']
+        SourceName_Beam = "FarFieldPointSource" # This should work for GRBs
+        SourceParticleType = 1 # 1=photon
+        SourceName_Spectrum = "Band"
+
+
         f.write(f"{RunName}.Source {SourceName}\n")
-        f.write(f"{SourceName}.ParticleType           {1}\n")
-        SourceName_Beam = "FarFieldPointSource"
+        f.write(f"{SourceName}.ParticleType           {SourceParticleType}\n")
+        f.write(f"# !!! Is 0 0 always okay after FarFieldPointSource?\n")
         f.write(f"{SourceName}.Beam                   {SourceName_Beam} {0} {0}\n")
-        SourceName_Spectrum = "PowerLaw"
-        f.write(f"{SourceName}.Spectrum               {SourceName_Spectrum} {100} {10000} {2.17}\n")
-        f.write(f"{SourceName}.Flux                   {0.0565}\n")
+        f.write(f"{SourceName}.Orientation            Galactic Fixed {lii} {bii}\n")
+        f.write(f"# I print: Flux integration min&max energies, alpha, beta, epeak\n")
+        f.write(f"{SourceName}.Spectrum               {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha} {beta} {epeak.value}\n")
+        f.write(f"# I print field flnc_band_phtflux of the catalog, in cm-2 s-1\n")
+        f.write(f"{SourceName}.Flux                   {flux.value}\n")
+        f.write(f"# !!! Is RelativeX always okay? Then I print two random numbers from constant distribution. 1st one in [0,1], 2nd one in [0,180]\n")
+        f.write(f"{SourceName}.Polarization           RelativeX {polarization_ampli} {polarization_phase}\n")
+        f.write(f"# !!! Should I print the full path to the file? Is the format okay?\n")# false: not repeating
+        f.write(f"# !!! This Lightcurve has columns time (s) and value (1/s), normalized to 1 like a Probability Distribution Function. Are these formats okay?\n")
+        f.write(f"{SourceName}.Lightcurve             File false {light_curve_output_name}\n")
 
 
 
