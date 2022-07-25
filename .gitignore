@@ -6,6 +6,9 @@
 
 #Folders
 #GBM_burst_archive
+__*
+.vscode
+Temp
 
 # Files
 GBM_bursts.fits

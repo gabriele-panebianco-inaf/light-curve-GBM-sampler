@@ -11,6 +11,8 @@ import astropy.units as u
 
 from scipy.special import erfinv
 
+from empirical_light_curve import *
+
 
 # Put here some configuration parameters. Should I put them into a YAML file?
 GBM_Catalog = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/"
@@ -163,7 +165,11 @@ if __name__ == '__main__':
         for row in light_curve_table:
             f.write(f"DP {row['time'].value} {row['curve'].value}\n")
         f.write(f"EN\n")
-    #light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)
+
+
+    # Empirical Light Curve
+    Empirical_Light_Curve(transient, logger, Output_Directory)
+    logger.info(f"{15*'='}Curve retrieved{15*'='}")
 
 
     # Write a source file
