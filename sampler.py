@@ -155,9 +155,9 @@ if __name__ == '__main__':
 
     light_curve_table = QTable([time_array, lc_values], names=('time', 'curve'), meta={'name': 'Gaussian'})
 
-    logger.info(light_curve_table)
+    # logger.info(light_curve_table)
 
-    light_curve_output_name = Output_Directory+f"LightCurves/Gauss_{transient['name']}.dat"
+    light_curve_output_name = Output_Directory+f"LightCurves/{transient['name']}_gauss.dat"
     logger.info(f"Print Gaussian Light Curve: {light_curve_output_name}")
 
     with open(light_curve_output_name, 'w') as f:

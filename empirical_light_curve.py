@@ -4,8 +4,11 @@ from os.path import isfile, join
 import numpy as np
 import shutil
 
+from gbm.background import BackgroundFitter
+from gbm.background.binned import Polynomial
 from gbm.binning.unbinned import bin_by_time
 from gbm.data import TTE, GbmDetectorCollection
+from gbm.data.primitives import TimeBins
 from gbm.finder import TriggerFtp
 
 
@@ -40,7 +43,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     logger.info(f"List of detectors used by the GBM analysis: {detectors}")
 
     # Find the Burst data in the Online Archive
-    trig_finder = TriggerFtp(transient['trigger_name'][2:])
+    logger.info(f"Connect to Database...")
+    #trig_finder = TriggerFtp(transient['trigger_name'][2:])
 
     # Make a Directory to host the TTE Data and Download them
     try:
@@ -67,6 +71,57 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
     [logger.info(f"Det: {c.detector} | Energy: {c.energy_range} keV | Time: {c.time_range} s") for c in cspecs]
 
+    # Background Fitting to get the excess
+    bkgd_range = [(transient['back_interval_low_start'].unmasked.value, transient['back_interval_low_stop'].unmasked.value), (transient['back_interval_high_start'].unmasked.value, transient['back_interval_high_stop'].unmasked.value)]
+    backfitters = [BackgroundFitter.from_phaii(cspec, Polynomial, time_ranges = bkgd_range) for cspec in cspecs]
+    backfitters = GbmDetectorCollection.from_list(backfitters, dets=cspecs.detector())
+    logger.info(f"Fit Background in {bkgd_range} s.")
+    backfitters.fit(order = 1)
+    logger.info(f"Interpolate over source time range...")
+    bkgds = backfitters.interpolate_bins(cspecs.data()[0].tstart, cspecs.data()[0].tstop)
+    bkgds = GbmDetectorCollection.from_list(bkgds, dets=cspecs.detector())
+
+    # Energy integration of data and background
+    # Energy Ranges in keV
+    erange_nai = ( 10.0,   900.0)
+    erange_bgo = (250.0, 40000.0)
+
+    # Energy intergration
+    data_timebins = cspecs.to_lightcurve(nai_kwargs = {'energy_range':erange_nai},
+                                            bgo_kwargs = {'energy_range':erange_bgo}
+                                    )
+    bkgd_timebins = bkgds.integrate_energy(nai_args = erange_nai,
+                                            bgo_args = erange_bgo
+                                      )
+    
+    # Save
+    for data_t, bkgd_t, det in zip(data_timebins, bkgd_timebins, detectors):
+
+        data = data_t.slice(transient['back_interval_low_stop'].unmasked.value,transient['back_interval_high_start'].unmasked.value)
+        bkgd_lo_edges = bkgd_t.time_centroids - 0.5*bkgd_t.time_widths
+        bkgd_hi_edges = bkgd_t.time_centroids + 0.5*bkgd_t.time_widths
+        bkgd = TimeBins(bkgd_t.counts, bkgd_lo_edges, bkgd_hi_edges, bkgd_t.exposure)
+        bkgd = bkgd.slice(transient['back_interval_low_stop'].unmasked.value,transient['back_interval_high_start'].unmasked.value)
+        
+        # Compute excess and time slice
+        if not np.allclose(data.centroids, bkgd.centroids):
+            raise
+        widths = data.widths
+        centroids = data.centroids
+
+        excess = data.rates - bkgd.rates
+        normalization = np.sum(excess*widths)
+        pdf = excess / normalization
+
+        light_curve_output_name = Output_Directory+f"LightCurves/{transient['name']}_{det}.dat"
+        logger.info(f"Print Empirical Light Curve: {light_curve_output_name}")
+
+        with open(light_curve_output_name, 'w') as f:
+            f.write(f"IP LINLIN\n")
+            for t,d in zip(centroids, pdf):
+                f.write(f"DP {t} {d}\n")
+            f.write(f"EN\n")
+        
 
     # Remove GBM files and directory
     try:

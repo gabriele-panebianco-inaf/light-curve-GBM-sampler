@@ -29,4 +29,4 @@ GRB170131969.Flux                   2.0027208
 GRB170131969.Polarization           RelativeX 0.2697867137638703 7.375234308515044
 # !!! Should I print the full path to the file? Is the format okay?
 # !!! This Lightcurve has columns time (s) and value (1/s), normalized to 1 like a Probability Distribution Function. Are these formats okay?
-GRB170131969.Lightcurve             File false /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves/Gauss_GRB170131969.dat
+GRB170131969.Lightcurve             File false /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves/GRB170131969_gauss.dat
