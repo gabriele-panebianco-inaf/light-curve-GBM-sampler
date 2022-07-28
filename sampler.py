@@ -11,16 +11,19 @@ import astropy.units as u
 
 from scipy.special import erfinv
 
+from empirical_light_curve import *
+
 
 # Put here some configuration parameters. Should I put them into a YAML file?
 GBM_Catalog = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/"
 GBM_Catalog+= "GBM_bursts_flnc_band.fits"
-Name_Transient = None # "GRB160530667"
+Name_Transient = "GRB160530667" #None
 Random_seed = 0
 Spectral_Model_Type = "flnc" # pflx or flnc
 Spectral_Model_Name = "band" # plaw, comp, band, sbpl
 Output_Directory = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/"
 
+FIGURE_FORMAT = ".pdf"
 ######################################################
 
 
@@ -153,9 +156,9 @@ if __name__ == '__main__':
 
     light_curve_table = QTable([time_array, lc_values], names=('time', 'curve'), meta={'name': 'Gaussian'})
 
-    logger.info(light_curve_table)
+    # logger.info(light_curve_table)
 
-    light_curve_output_name = Output_Directory+f"LightCurves/Gauss_{transient['name']}.dat"
+    light_curve_output_name = Output_Directory+f"LightCurves/{transient['name']}_gauss.dat"
     logger.info(f"Print Gaussian Light Curve: {light_curve_output_name}")
 
     with open(light_curve_output_name, 'w') as f:
@@ -163,7 +166,25 @@ if __name__ == '__main__':
         for row in light_curve_table:
             f.write(f"DP {row['time'].value} {row['curve'].value}\n")
         f.write(f"EN\n")
-    #light_curve_table.write(light_curve_output_name, format='ascii', overwrite=True)
+
+    fig, axs = plt.subplots(1, figsize = (15,5) )
+    
+    axs.step(light_curve_table['time'].value, light_curve_table['curve'].value, label = 'Source rates', color = 'C0', where = 'mid')
+    axs.set_xlabel('Time since trigger (s)', fontsize = 'large')
+    axs.set_ylabel('Excess rates pdf (1/s)', fontsize = 'large')    
+    plot_title = f"Lightcurve: gaussian distribution mean={gauss_peak_time}, sigma={gauss_sigma}."
+    axs.set_title(plot_title, fontsize = 'large')
+    #axs.set_xlim(view_range[0], view_range[1])
+    axs.grid()
+    axs.legend()
+
+    figure_name = Output_Directory+f"LightCurves/{transient['name']}_gauss"+FIGURE_FORMAT
+    fig.savefig(figure_name, facecolor = 'white')
+
+
+    # Empirical Light Curve
+    Empirical_Light_Curve(transient, logger, Output_Directory)
+    logger.info(f"{15*'='}Curve retrieved{15*'='}")
 
 
     # Write a source file

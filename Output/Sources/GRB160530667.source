@@ -1,0 +1,32 @@
+# Example run for Cosima, based on GRB160530667
+#This file is similar to template https://github.com/zoglauer/megalib/blob/main/resource/examples/cosima/source/CrabOnly.source 
+
+# Global parameters !!! Should I print these? How do I choose them?
+Version         1
+Geometry        $(MEGALIB)/resource/examples/geomega/mpesatellitebaseline/SatelliteWithACS.geo.setup
+
+#Physics list !!! Should I print it? How do I choose it?
+PhysicsListEM               LivermorePol
+
+#Output formats !!! Should I print it?
+StoreSimulationInfo         all
+
+# Run & source parameters
+Run GRBSim
+# !!! Should I print .FileName and .Time? How do I choose .Time?
+GRBSim.FileName GRBOnlyObservation
+GRBSim.Time 1000.0
+GRBSim.Source GRB160530667
+GRB160530667.ParticleType           1
+# !!! Is 0 0 always okay after FarFieldPointSource?
+GRB160530667.Beam                   FarFieldPointSource 0 0
+GRB160530667.Orientation            Galactic Fixed 177.52511445 39.99308244
+# I print: Flux integration min&max energies, alpha, beta, epeak
+GRB160530667.Spectrum               Band 10.0 1000.0 -0.6819976 -2.4990304 181.77051
+# I print field flnc_band_phtflux of the catalog, in cm-2 s-1
+GRB160530667.Flux                   18.571352
+# !!! Is RelativeX always okay? Then I print two random numbers from constant distribution. 1st one in [0,1], 2nd one in [0,180]
+GRB160530667.Polarization           RelativeX 0.6369616873214543 48.561608477496655
+# !!! Should I print the full path to the file? Is the format okay?
+# !!! This Lightcurve has columns time (s) and value (1/s), normalized to 1 like a Probability Distribution Function. Are these formats okay?
+GRB160530667.Lightcurve             File false /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves/GRB160530667_gauss.dat

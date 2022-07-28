@@ -3,9 +3,16 @@
 *.tdat
 *.tdat.gz
 #*.fits
+*.pdf
+glg_tte*
+
+
 
 #Folders
 #GBM_burst_archive
+__*
+.vscode
+Temp
 
 # Files
 GBM_bursts.fits
