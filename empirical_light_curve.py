@@ -38,7 +38,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     logger.info(f"{15*'='}Get the Empirical GBM Light Curve")
 
     # Read the detector mask from Burst Catalog entry and turn it into a list of bools.
-    det_mask = list(str(int(transient['scat_detector_mask'])))
+    det_mask = list(transient['scat_detector_mask'])
     det_mask = [bool(int(d)) for d in det_mask]
     detectors = DETECTORS[det_mask].tolist()
 
@@ -46,13 +46,13 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
     # Find the Burst data in the Online Archive
     logger.info(f"Connect to Database...")
-    #trig_finder = TriggerFtp(transient['trigger_name'][2:])
+    trig_finder = TriggerFtp(transient['trigger_name'][2:])
 
     # Make a Directory to host the TTE Data and Download them
     try:
         Temp_Directory = Output_Directory+"Temp/"
         os.makedirs(os.path.dirname(Temp_Directory), exist_ok=True)
-        # trig_finder.get_tte(Temp_Directory,dets=detectors)
+        trig_finder.get_tte(Temp_Directory, dets=detectors)
     except:
         os.rmdir(Temp_Directory)
         logger.error("Could not get the GBM TTE files. Deleting temporary directory.")
@@ -60,6 +60,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
     # Load the TTE files into the code
     tte_filenames = [f for f in os.listdir(Temp_Directory) if isfile(join(Temp_Directory, f))]
+    logger.info(tte_filenames)
     ttes = [TTE.open(Temp_Directory+f) for f in tte_filenames]
 
     # Time binning: turn the TTE files into CSPEC files
@@ -147,16 +148,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         fig.savefig(figure_name, facecolor = 'white')
     
 
-        
-
     # Remove GBM files and directory
     try:
-        #shutil.rmtree(Temp_Directory)
+        shutil.rmtree(Temp_Directory)
         logger.info("Delete temporary GBM files and directory")
     except OSError as e:
         logger.error(f"Error: {Temp_Directory} : {e.strerror}")
-
-
-
 
     return None

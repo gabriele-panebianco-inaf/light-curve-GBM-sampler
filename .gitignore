@@ -4,6 +4,9 @@
 *.tdat.gz
 #*.fits
 *.pdf
+glg_tte*
+
+
 
 #Folders
 #GBM_burst_archive

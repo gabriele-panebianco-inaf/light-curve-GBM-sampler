@@ -17,7 +17,7 @@ from empirical_light_curve import *
 # Put here some configuration parameters. Should I put them into a YAML file?
 GBM_Catalog = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/"
 GBM_Catalog+= "GBM_bursts_flnc_band.fits"
-Name_Transient =  None #"GRB160530667" #None
+Name_Transient = "GRB160530667" #None
 Random_seed = 0
 Spectral_Model_Type = "flnc" # pflx or flnc
 Spectral_Model_Name = "band" # plaw, comp, band, sbpl
