@@ -1,18 +1,20 @@
-import os
-from os.path import isfile, join
-
+import matplotlib.pyplot as plt
 import numpy as np
+import os
 import shutil
+
+from os.path import isfile, join
 
 from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
 from gbm.binning.unbinned import bin_by_time
 from gbm.data import TTE, GbmDetectorCollection
 from gbm.data.primitives import TimeBins
+from gbm.detectors import Detector
 from gbm.finder import TriggerFtp
 
-
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
+FIGURE_FORMAT = ".pdf"
 
 def Empirical_Light_Curve(transient, logger, Output_Directory):
     """
@@ -121,6 +123,30 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
             for t,d in zip(centroids, pdf):
                 f.write(f"DP {t} {d}\n")
             f.write(f"EN\n")
+
+        # Save plots
+
+        # Define pyplot Figure and Axes
+        fig, axs = plt.subplots(1, figsize = (15,5) )
+    
+        axs.step(centroids, pdf, label = 'Excess rates', color = 'C0', where = 'mid')
+        axs.set_xlabel('Time since trigger (s)', fontsize = 'large')
+        axs.set_ylabel('Excess rates pdf (1/s)', fontsize = 'large')
+        if Detector.from_str(det).is_nai():
+            erange_det = erange_nai
+        else:
+            erange_det = erange_bgo
+    
+        plot_title = 'Lightcurve. Excess rates of detector: '+det+'. Energy range '+str(erange_det)+' keV.'
+        axs.set_title(plot_title, fontsize = 'large')
+        #axs.set_xlim(view_range[0], view_range[1])
+        axs.grid()
+        axs.legend()
+
+        figure_name = Output_Directory+f"LightCurves/{transient['name']}_{det}"+FIGURE_FORMAT
+        fig.savefig(figure_name, facecolor = 'white')
+    
+
         
 
     # Remove GBM files and directory

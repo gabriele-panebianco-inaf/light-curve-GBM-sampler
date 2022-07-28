@@ -17,12 +17,13 @@ from empirical_light_curve import *
 # Put here some configuration parameters. Should I put them into a YAML file?
 GBM_Catalog = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/"
 GBM_Catalog+= "GBM_bursts_flnc_band.fits"
-Name_Transient = None # "GRB160530667"
+Name_Transient =  None #"GRB160530667" #None
 Random_seed = 0
 Spectral_Model_Type = "flnc" # pflx or flnc
 Spectral_Model_Name = "band" # plaw, comp, band, sbpl
 Output_Directory = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/"
 
+FIGURE_FORMAT = ".pdf"
 ######################################################
 
 
@@ -165,6 +166,20 @@ if __name__ == '__main__':
         for row in light_curve_table:
             f.write(f"DP {row['time'].value} {row['curve'].value}\n")
         f.write(f"EN\n")
+
+    fig, axs = plt.subplots(1, figsize = (15,5) )
+    
+    axs.step(light_curve_table['time'].value, light_curve_table['curve'].value, label = 'Source rates', color = 'C0', where = 'mid')
+    axs.set_xlabel('Time since trigger (s)', fontsize = 'large')
+    axs.set_ylabel('Excess rates pdf (1/s)', fontsize = 'large')    
+    plot_title = f"Lightcurve: gaussian distribution mean={gauss_peak_time}, sigma={gauss_sigma}."
+    axs.set_title(plot_title, fontsize = 'large')
+    #axs.set_xlim(view_range[0], view_range[1])
+    axs.grid()
+    axs.legend()
+
+    figure_name = Output_Directory+f"LightCurves/{transient['name']}_gauss"+FIGURE_FORMAT
+    fig.savefig(figure_name, facecolor = 'white')
 
 
     # Empirical Light Curve

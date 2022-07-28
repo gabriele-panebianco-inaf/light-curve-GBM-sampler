@@ -3,6 +3,7 @@
 *.tdat
 *.tdat.gz
 #*.fits
+*.pdf
 
 #Folders
 #GBM_burst_archive
