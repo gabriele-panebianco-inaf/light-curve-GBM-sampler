@@ -13,6 +13,7 @@ glg_tte*
 __*
 .vscode
 Temp
+.ipynb_checkpoints
 
 # Files
 GBM_bursts.fits

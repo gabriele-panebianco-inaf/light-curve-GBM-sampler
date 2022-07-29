@@ -4,6 +4,8 @@ import os
 import shutil
 
 from os.path import isfile, join
+from scipy.special import erfinv
+from astropy.modeling.models import Gaussian1D
 
 from gbm.background import BackgroundFitter
 from gbm.background.binned import Polynomial
@@ -14,9 +16,104 @@ from gbm.detectors import Detector
 from gbm.finder import TriggerFtp
 
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
+FIGURE_FORMAT = ".pdf"
 
 
-def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = ".pdf"):
+def Write_Gaussian_light_curve(transient, logger, Output_Directory):
+    """
+    Write a simple lightcurve file: gaussian shape.
+    
+    Parameters
+    ----------
+    transient: `astropy.table.row.Row`
+        Row of the chosen transient.
+    logger : `logging.Logger`
+        Logger from main.
+    Output_Directory : str
+        Path to the Output directory.
+    
+    Returns
+    -------
+    light_curve_output_name : str
+        Path to the written light curve.
+    """
+
+    logger.info(f"{15*'='}GAUSSIAN LIGHT CURVE{25*'='}")
+    # Define the gaussian temporal shape
+
+    gauss_peak_time = (transient['pflx_spectrum_start']+transient['pflx_spectrum_stop']) / 2.0
+    gauss_sigma = transient['t90'] / (2*np.sqrt(2)*erfinv(0.90))
+    gauss_amplitude = 1 / (gauss_sigma * np.sqrt(2 * np.pi)) # Normalization: integral is 1.
+    light_curve = Gaussian1D(amplitude=gauss_amplitude, mean=gauss_peak_time, stddev=gauss_sigma)
+
+    logger.info(f"Highest flux recorded in catalog at [{gauss_peak_time}] from trigger time.")
+    logger.info(f"GBM t90: {transient['t90']}.")
+    logger.info(f"Gaussian Pulse sigma: {gauss_sigma}.")
+  
+
+    # Evaluate the function in a given time array
+    time_step = (transient['flnc_spectrum_stop'] - transient['flnc_spectrum_start']) / 200.0
+
+    time_start= np.maximum(transient['flnc_spectrum_start'], transient['back_interval_low_stop'].unmasked)
+    time_stop = np.minimum(transient['flnc_spectrum_stop' ], transient['back_interval_high_start'].unmasked)
+
+    time_num = (time_stop - time_start)/time_step
+    time_num = int(np.floor(time_num.unmasked.to("").value))
+    
+    time_array = np.linspace(time_start, time_stop, time_num)
+    lc_values = light_curve(time_array)
+
+    logger.info(f"Evaluate {time_num} time points in [{time_start},{time_stop}]. Step = {time_step}.")
+
+
+    # Time offset shift
+    time_shifted = time_array - time_start
+
+    logger.info(f"Shift time axis by {time_start}. Trigger is at {-time_start}, Stop at {time_stop-time_start}.")
+
+
+    # Write
+    output = Output_Directory+"Light_Curves_Extra/"
+    os.makedirs(os.path.dirname(output), exist_ok=True)
+    light_curve_output_name = output +f"{transient['name']}_gauss.dat"
+    
+    logger.info(f"Write Gaussian Light Curve: {light_curve_output_name}")
+
+    with open(light_curve_output_name, 'w') as f:
+        f.write(f"IP LINLIN\n")
+        for t,v in zip(time_shifted.value, lc_values.value):
+            f.write(f"DP {t} {v}\n")
+        f.write(f"EN\n")
+
+
+    # Plot and save figure
+    plot_title = f"Gaussian Light Curve: mean={np.round(gauss_peak_time-time_start,3)}, "
+    plot_title+= f"sigma={np.round(gauss_sigma,3)}. Trigger: {np.round(-time_start,3)}."
+    
+    fig, axs = plt.subplots(1, figsize = (15,5) )
+    axs.step(time_shifted.value, lc_values.value, label = 'Source rates', color = 'C0', where = 'mid')
+    axs.axvline(-time_start.value, color='C1', label=f"Trigger: {-time_start}.")
+    axs.set_xlabel('Time [s]', fontsize = 'large')
+    axs.set_ylabel('Excess rates pdf [1/s]', fontsize = 'large')    
+    axs.set_title(plot_title, fontsize = 'large')
+    axs.grid()
+    axs.legend()
+
+    figure_name = output+f"{transient['name']}_gauss"+FIGURE_FORMAT
+    fig.savefig(figure_name, facecolor = 'white')
+
+    logger.info(f"{60*'='}\n")
+
+    return light_curve_output_name
+
+
+
+
+
+
+
+
+def Empirical_Light_Curve(transient, logger, Output_Directory):
     """
     Given a transient name find its trigger data, download it, analyze it and get the light curve.
 
@@ -28,8 +125,6 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
         Logger from main.
     Output_Directory : str
         Path to the Output directory.
-    FIGURE_FORMAT : str
-        Format of the figure to write.
 
     Returns
     -------
@@ -37,13 +132,15 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
         Name of the output light curve file.
 
     """
-    logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{15*'='}")
+    logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{20*'='}")
 
 
     # Read the detector mask from Burst Catalog entry and turn it into a list of bools.
     det_mask = list(transient['scat_detector_mask'])
     det_mask = [bool(int(d)) for d in det_mask]
     detectors = DETECTORS[det_mask].tolist()
+    # Select only the BGO
+    detectors = [detectors[-1]]
 
     logger.info(f"List of detectors used by the GBM analysis: {detectors}.")
 
@@ -65,7 +162,6 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
 
     # Load the TTE files
     tte_filenames = [f for f in os.listdir(Temp_Directory) if isfile(join(Temp_Directory, f))]
-    logger.info(tte_filenames)
     ttes = [TTE.open(Temp_Directory+f) for f in tte_filenames]
 
     # Time binning: turn the TTE files into CSPEC files
@@ -74,9 +170,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
 
     cspecs = [t.to_phaii(bin_by_time, bintime, time_range = time_range, time_ref = 0.0) for t in ttes]
     cspecs = GbmDetectorCollection.from_list(cspecs)
-
-    logger.info(f"Selecting time range for background fit: {time_range} s, binning {bintime} s.")
-    [logger.info(f"Det: {c.detector} | Energy: {c.energy_range} keV | Time: {c.time_range} s") for c in cspecs]
+    [logger.info(f"Det: {c.detector} | Energy: {c.energy_range} keV | Time: {c.time_range} s | Binning: {bintime} s.") for c in cspecs]
+    
 
     # Background Fitting to get the excess
     bkgd_range = [(transient['back_interval_low_start'].unmasked.value, transient['back_interval_low_stop'].unmasked.value), (transient['back_interval_high_start'].unmasked.value, transient['back_interval_high_stop'].unmasked.value)]
@@ -84,9 +179,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
     backfitters = GbmDetectorCollection.from_list(backfitters, dets=cspecs.detector())
 
     logger.info(f"Fit Background in {bkgd_range} s.")
+    logger.info(f"flnc_spectrum_start,stop: [{transient['flnc_spectrum_start'].value},{transient['flnc_spectrum_stop'].value}] s.")
+
     backfitters.fit(order = 1)
 
-    logger.info(f"Interpolate over source time range...")
+    #logger.info(f"Interpolate background over source time range...")
     bkgds = backfitters.interpolate_bins(cspecs.data()[0].tstart, cspecs.data()[0].tstop)
     bkgds = GbmDetectorCollection.from_list(bkgds, dets=cspecs.detector())
 
@@ -102,16 +199,14 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
                                           )
 
     
-    # Save the Lightcurves
+    # Write the Lightcurves
 
-    LC_time_start= transient['flnc_spectrum_start'].value #transient['back_interval_low_stop'].unmasked.value
-    LC_time_stop = transient['flnc_spectrum_stop' ].value #transient['back_interval_high_start'].unmasked.value
+    LC_time_start= np.maximum(transient['flnc_spectrum_start'].value, transient['back_interval_low_stop'].unmasked.value)
+    LC_time_stop = np.minimum(transient['flnc_spectrum_stop' ].value, transient['back_interval_high_start'].unmasked.value)
 
     logger.info(f"Slice Light curves between [{LC_time_start},{LC_time_stop}] s.")
 
     for data_t, bkgd_t, det in zip(data_timebins, bkgd_timebins, detectors):
-
-        #logger.info(f"Lightcurve {det} selected in energy range {data_t.energy_range} keV.")
         
         data = data_t.slice(LC_time_start,LC_time_stop)
 
@@ -130,12 +225,17 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
         widths = data.widths
         excess = data.rates - bkgd.rates
 
+        # Negative values to 0
+        excess = np.where(excess < 0, 0.0, excess)
+        
+        # Normalize sum to 1
         normalization = np.sum(excess*widths)
         excess /= normalization
+        
 
         if Detector.from_str(det).is_nai():
             erange_det = erange_nai
-            output = Output_Directory+"LightCurves_NaI/"
+            output = Output_Directory+"LightCurves_Extra/"
         else:
             erange_det = erange_bgo
             output = Output_Directory
@@ -146,6 +246,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
 
         with open(light_curve_output_name, 'w') as f:
             f.write(f"IP LINLIN\n")
+            f.write(f"DP 0.0 0.0\n")
             for t,d in zip(centroids, excess):
                 f.write(f"DP {t} {d}\n")
             f.write(f"EN\n")
@@ -155,7 +256,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
         fig, axs = plt.subplots(1, figsize = (15,5) )
     
         axs.step(centroids, excess, label = 'Excess rates', color = 'C0', where = 'mid')
-        axs.set_xlabel('Time since trigger [s]', fontsize = 'large')
+        axs.axvline(-LC_time_start, color='C1', label=f"Trigger: {-LC_time_start} s.")
+        axs.set_xlabel('Time s[s]', fontsize = 'large')
         axs.set_ylabel('Excess rates pdf [1/s]', fontsize = 'large')
         
         plot_title = 'Lightcurve. Excess rates of detector: '+det+'. Energy range '+str(erange_det)+' keV.'
@@ -175,6 +277,6 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, FIGURE_FORMAT = "
         logger.error(f"Error: {Temp_Directory} : {e.strerror}")
 
     
-    logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{15*'='}\n")
+    logger.info(f"{60*'='}\n")
 
     return None

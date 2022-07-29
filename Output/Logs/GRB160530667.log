@@ -1,52 +1,41 @@
-2022-07-29 17:08:29,514. INFO: GBM Bursts Catalog: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/GBM_bursts_flnc_band.fits
-2022-07-29 17:08:29,514. INFO: Number of GRBs in the catalog: 2309.
-2022-07-29 17:08:29,514. INFO: Set Random seed: 0.
-2022-07-29 17:08:29,514. INFO: Transient GRB160530667 was requested.
+2022-07-29 20:52:53,079. INFO: GBM Bursts Catalog: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/GBM_bursts_flnc_band.fits
+2022-07-29 20:52:53,079. INFO: Number of GRBs in the catalog: 2309.
+2022-07-29 20:52:53,079. INFO: Set Random seed: 0.
+2022-07-29 20:52:53,079. INFO: Transient GRB160530667 was requested.
 
-2022-07-29 17:08:29,514. INFO: ===============TRANSIENT PARAMETERS===============
-2022-07-29 17:08:29,515. INFO: Galactic coordinates: l=177.52511445 deg, b=39.99308244 deg.
-2022-07-29 17:08:29,515. INFO: Spectral model: band. Type: flnc.
-2022-07-29 17:08:29,515. INFO: flnc_band_ampl : 0.11191186 1 / (cm2 keV s)
-2022-07-29 17:08:29,515. INFO: flnc_band_epeak: 181.77051 keV
-2022-07-29 17:08:29,515. INFO: flnc_band_alpha: -0.6819976
-2022-07-29 17:08:29,515. INFO: flnc_band_beta : -2.4990304
-2022-07-29 17:08:29,515. INFO: flnc_band_epiv : 100.0 keV
-2022-07-29 17:08:29,515. INFO: flnc_band_phtflux : 18.571352 1 / (cm2 s)
-2022-07-29 17:08:29,515. INFO: RANDOM Polarization amplitude: 0.6369616873214543
-2022-07-29 17:08:29,515. INFO: RANDOM Polarization phase: 48.561608477496655
-2022-07-29 17:08:29,515. INFO: ==================================================
+2022-07-29 20:52:53,079. INFO: ===============TRANSIENT PARAMETERS=========================
+2022-07-29 20:52:53,079. INFO: Galactic coordinates: l=177.52511445 deg, b=39.99308244 deg.
+2022-07-29 20:52:53,079. INFO: Spectral model: band. Type: flnc.
+2022-07-29 20:52:53,079. INFO: flnc_band_ampl : 0.11191186 1 / (cm2 keV s)
+2022-07-29 20:52:53,079. INFO: flnc_band_epeak: 181.77051 keV
+2022-07-29 20:52:53,079. INFO: flnc_band_alpha: -0.6819976
+2022-07-29 20:52:53,079. INFO: flnc_band_beta : -2.4990304
+2022-07-29 20:52:53,079. INFO: flnc_band_epiv : 100.0 keV
+2022-07-29 20:52:53,079. INFO: flnc_band_phtflux : 18.571352 1 / (cm2 s)
+2022-07-29 20:52:53,080. INFO: RANDOM Polarization amplitude: 0.6369616873214543
+2022-07-29 20:52:53,080. INFO: RANDOM Polarization phase: 48.561608477496655
+2022-07-29 20:52:53,080. INFO: ============================================================
 
-2022-07-29 17:08:29,515. INFO: ===============GAUSSIAN LIGHT CURVE===============
-2022-07-29 17:08:29,516. INFO: Highest flux recorded in catalog at [5.632 s] from trigger time.
-2022-07-29 17:08:29,516. INFO: GBM t90: 9.02415 s.
-2022-07-29 17:08:29,516. INFO: Gaussian Pulse sigma: 2.7431468223482955 s.
-2022-07-29 17:08:29,518. INFO: Evaluate 200 time points in [-18.432 s,30.72 s]. Step = 0.24576 s.
-2022-07-29 17:08:29,518. INFO: Shift time axis by -18.432 s. Trigger is at 18.432 s, Stop at 49.152 s.
-2022-07-29 17:08:29,518. INFO: Write Gaussian Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/Light_Curves_Gauss/GRB160530667_gauss.dat
-2022-07-29 17:08:29,676. INFO: ==================================================
+2022-07-29 20:52:53,080. INFO: ===============GAUSSIAN LIGHT CURVE=========================
+2022-07-29 20:52:53,080. INFO: Highest flux recorded in catalog at [5.632 s] from trigger time.
+2022-07-29 20:52:53,080. INFO: GBM t90: 9.02415 s.
+2022-07-29 20:52:53,081. INFO: Gaussian Pulse sigma: 2.7431468223482955 s.
+2022-07-29 20:52:53,082. INFO: Evaluate 117 time points in [-4.12 s,24.75 s]. Step = 0.24576 s.
+2022-07-29 20:52:53,083. INFO: Shift time axis by -4.12 s. Trigger is at 4.12 s, Stop at 28.87 s.
+2022-07-29 20:52:53,083. INFO: Write Gaussian Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/Light_Curves_Extra/GRB160530667_gauss.dat
+2022-07-29 20:52:53,217. INFO: ============================================================
 
-2022-07-29 17:08:29,676. INFO: ===============EMPIRICAL GBM LIGHT CURVE===============
-2022-07-29 17:08:29,676. INFO: List of detectors used by the GBM analysis: ['n1', 'n2', 'n5', 'b0'].
-2022-07-29 17:08:29,676. INFO: Connect to database...
-2022-07-29 17:08:57,408. INFO: ['glg_tte_n1_bn160530667_v00.fit', 'glg_tte_n5_bn160530667_v00.fit', 'glg_tte_n2_bn160530667_v00.fit', 'glg_tte_b0_bn160530667_v00.fit']
-2022-07-29 17:08:57,541. INFO: Selecting time range for background fit: (-12.38, 35.5) s, binning 0.24576 s.
-2022-07-29 17:08:57,541. INFO: Det: n1 | Energy: (4.062647, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s
-2022-07-29 17:08:57,541. INFO: Det: n5 | Energy: (4.246656, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s
-2022-07-29 17:08:57,541. INFO: Det: n2 | Energy: (4.602642, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s
-2022-07-29 17:08:57,541. INFO: Det: b0 | Energy: (113.24812, 50000.0) keV | Time: (-12.533760000000001, 35.6352) s
-2022-07-29 17:08:57,542. INFO: Fit Background in [(-12.38, -4.12), (24.75, 35.5)] s.
-2022-07-29 17:08:57,659. INFO: Interpolate over source time range...
-2022-07-29 17:08:57,922. INFO: Slice Light curves between [-18.432,30.72] s.
-2022-07-29 17:08:57,923. INFO: Shift Time Axis by -18.432 s. Trigger at 18.432 s. End at 49.152 s.
-2022-07-29 17:08:57,924. INFO: Write GBM Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves_NaI/GRB160530667_n1.dat
-2022-07-29 17:08:58,009. INFO: Shift Time Axis by -18.432 s. Trigger at 18.432 s. End at 49.152 s.
-2022-07-29 17:08:58,009. INFO: Write GBM Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves_NaI/GRB160530667_n2.dat
-2022-07-29 17:08:58,097. INFO: Shift Time Axis by -18.432 s. Trigger at 18.432 s. End at 49.152 s.
-2022-07-29 17:08:58,097. INFO: Write GBM Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/LightCurves_NaI/GRB160530667_n5.dat
-2022-07-29 17:08:58,180. INFO: Shift Time Axis by -18.432 s. Trigger at 18.432 s. End at 49.152 s.
-2022-07-29 17:08:58,180. INFO: Write GBM Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/GRB160530667_b0.dat
-2022-07-29 17:08:58,264. INFO: Delete temporary GBM files and directory
-2022-07-29 17:08:58,264. INFO: ===============EMPIRICAL GBM LIGHT CURVE===============
+2022-07-29 20:52:53,218. INFO: ===============EMPIRICAL GBM LIGHT CURVE====================
+2022-07-29 20:52:53,218. INFO: List of detectors used by the GBM analysis: ['b0'].
+2022-07-29 20:52:53,218. INFO: Connect to database...
+2022-07-29 20:53:00,297. INFO: Det: b0 | Energy: (113.24812, 50000.0) keV | Time: (-12.533760000000001, 35.6352) s | Binning: 0.24576 s.
+2022-07-29 20:53:00,298. INFO: Fit Background in [(-12.38, -4.12), (24.75, 35.5)] s.
+2022-07-29 20:53:00,298. INFO: flnc_spectrum_start,stop: [-18.432,30.72] s.
+2022-07-29 20:53:00,411. INFO: Slice Light curves between [-4.12,24.75] s.
+2022-07-29 20:53:00,412. INFO: Shift Time Axis by -4.12 s. Trigger at 4.12 s. End at 28.87 s.
+2022-07-29 20:53:00,412. INFO: Write GBM Light Curve: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/GRB160530667_b0.dat
+2022-07-29 20:53:00,493. INFO: Delete temporary GBM files and directory
+2022-07-29 20:53:00,493. INFO: ============================================================
 
-2022-07-29 17:08:58,265. INFO: Write Source file: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/GRB160530667.source
-2022-07-29 17:08:58,265. INFO: Total execution time: 32.12 s.
+2022-07-29 20:53:00,493. INFO: Write Source file: /home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/GRB160530667.source
+2022-07-29 20:53:00,494. INFO: Total execution time: 10.398 s.
