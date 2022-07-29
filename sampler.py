@@ -123,9 +123,8 @@ if __name__ == '__main__':
     # Gaussian Light Curve
     light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
 
-
     # Empirical Light Curve
-    light_curve_output_name = Empirical_Light_Curve(transient, logger, Output_Directory)
+    LC_info = Empirical_Light_Curve(transient, logger, Output_Directory)
 
 
     # Write a source file
@@ -178,28 +177,30 @@ if __name__ == '__main__':
 
 
         f.write(f"\n# Run and source parameters\n")
-        f.write(f"Run                {RunName}\n")
-        f.write(f"{RunName}.FileName {SourceName}\n")
-        f.write(f"{RunName}.Time     {RunTime}\n")
-        f.write(f"{RunName}.Source   {SourceName}\n")
-
-        f.write(f"{SourceName}.ParticleType           {SourceParticleType}\n")
-        f.write(f"{SourceName}.Beam                   {SourceName_Beam} {0} {0}\n")
-        f.write(f"{SourceName}.Orientation            Galactic Fixed {lii} {bii}\n")
+        f.write(f"Run                         {RunName}\n")
+        f.write(f"{RunName}.FileName          {SourceName}\n")
+        f.write(f"{RunName}.Time              {RunTime}\n")
+        f.write(f"{RunName}.Source            {SourceName}\n")
+        f.write(f"{SourceName}.ParticleType   {SourceParticleType}\n")
+        f.write(f"{SourceName}.Beam           {SourceName_Beam} {0} {0}\n")
+        f.write(f"{SourceName}.Orientation    Galactic Fixed {lii} {bii}\n")
         
         f.write(f"# Band Spectrum parameters: Flux integration min and max energies, alpha, beta, epeak\n")
-        f.write(f"{SourceName}.Spectrum               {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha} {beta} {epeak.value}\n")
+        f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha} {beta} {epeak.value}\n")
         
         f.write(f"# Flux from 'flnc_band_phtflux' entry of the catalog. Unit: cm-2 s-1\n")
-        f.write(f"{SourceName}.Flux                   {flux.value}\n")
+        f.write(f"{SourceName}.Flux           {flux.value}\n")
         
         f.write(f"# Polarization: random numbers from constant distribution. 1st one in [0,1], 2nd one in [0,180]\n")
-        f.write(f"{SourceName}.Polarization           RelativeX {polarization_ampli} {polarization_phase}\n")
+        f.write(f"{SourceName}.Polarization   RelativeX {polarization_ampli} {polarization_phase}\n")
         
         f.write(f"# GBM Light Curve.\n")
-        f.write(f" time (s) and value (1/s), normalized to 1 like a Probability Distribution Function.\n")
-        f.write(f"{SourceName}.Lightcurve             File false {light_curve_output_name}\n")
-        # false: not repeating
+        f.write(f"# DP 1st column: time point in [s]. GBM times are expressed wrt trigger time, we shifted them so that we start from 0.0.\n")
+        f.write(f"# Trigger time is now at {LC_info.trigger} s. Light curve stops at {LC_info.stop} s. Time resolution is {LC_info.step} s. There are {LC_info.num} points.\n")
+        f.write(f"# DP 2nd column: light curve values in [1/s]. Time integral of the light curve is normalized to 1 like a Probability Distribution Function.\n")
+        f.write(f"# The light curve values are excess rates: observed data - best fit background model. Negative excess rates are manually set to 0.0.\n")
+        f.write(f"# We selected the events from GBM detector {LC_info.det} with energy in [{LC_info.emin},{LC_info.emax}] keV.\n")
+        f.write(f"{SourceName}.Lightcurve    File false {LC_info.output_name}\n")  # false: not repeating
 
 
 

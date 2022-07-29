@@ -19,6 +19,17 @@ DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb
 FIGURE_FORMAT = ".pdf"
 
 
+class Light_Curve_Info:
+    def __init__(self, output_name="", trigger=0.0, step=0.0, stop=0.0, num=0, det="", emin=0.0, emax=0.0):
+        self.output_name = output_name
+        self.trigger = trigger
+        self.step = step
+        self.stop = stop
+        self.num = num
+        self.det = det
+        self.emin = emin
+        self.emax = emax
+
 def Write_Gaussian_light_curve(transient, logger, Output_Directory):
     """
     Write a simple lightcurve file: gaussian shape.
@@ -206,7 +217,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
     logger.info(f"Slice Light curves between [{LC_time_start},{LC_time_stop}] s.")
 
-    for data_t, bkgd_t, det in zip(data_timebins, bkgd_timebins, detectors):
+    for i, (data_t, bkgd_t, det) in enumerate(zip(data_timebins, bkgd_timebins, detectors)):
         
         data = data_t.slice(LC_time_start,LC_time_stop)
 
@@ -234,19 +245,22 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         
 
         if Detector.from_str(det).is_nai():
-            erange_det = erange_nai
+            erange_low  = np.maximum(cspecs[i].energy_range[0], erange_nai[0])
+            erange_high = np.minimum(cspecs[i].energy_range[1], erange_nai[1])
             output = Output_Directory+"LightCurves_Extra/"
         else:
-            erange_det = erange_bgo
+            erange_low  = np.maximum(cspecs[i].energy_range[0], erange_bgo[0])
+            erange_high = np.minimum(cspecs[i].energy_range[1], erange_bgo[1])
             output = Output_Directory
-        
+
+        erange_det = (erange_low, erange_high)
         os.makedirs(os.path.dirname(output), exist_ok=True)
         light_curve_output_name = output+f"{transient['name']}_{det}.dat"
         logger.info(f"Write GBM Light Curve: {light_curve_output_name}")
 
         with open(light_curve_output_name, 'w') as f:
             f.write(f"IP LINLIN\n")
-            f.write(f"DP 0.0 0.0\n")
+            f.write(f"DP 0.0 1.0e-15\n")
             for t,d in zip(centroids, excess):
                 f.write(f"DP {t} {d}\n")
             f.write(f"EN\n")
@@ -279,4 +293,14 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     
     logger.info(f"{60*'='}\n")
 
-    return None
+    LC_info = Light_Curve_Info(output_name="./"+f"{transient['name']}_{det}.dat",
+                               trigger = -LC_time_start,
+                               step = data.widths[0],
+                               stop = LC_time_stop-LC_time_start,
+                               num  = len(centroids)+1,
+                               det  = det,
+                               emin = erange_det[0],
+                               emax = erange_det[1]
+                              )
+
+    return LC_info

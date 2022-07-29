@@ -12,8 +12,9 @@ glg_tte*
 #GBM_burst_archive
 __*
 .vscode
-Temp
 .ipynb_checkpoints
+Light_Curves_Extra
+Temp
 
 # Files
 GBM_bursts.fits
