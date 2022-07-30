@@ -1,3 +1,4 @@
+from curses import erasechar
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -93,7 +94,7 @@ def Write_Gaussian_light_curve(transient, logger, Output_Directory):
     with open(light_curve_output_name, 'w') as f:
         f.write(f"IP LINLIN\n")
         for t,v in zip(time_shifted.value, lc_values.value):
-            f.write(f"DP {t} {v}\n")
+            f.write(f"DP {t:.6f} {v:.6e}\n")
         f.write(f"EN\n")
 
 
@@ -217,7 +218,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
     logger.info(f"Slice Light curves between [{LC_time_start},{LC_time_stop}] s.")
 
-    for i, (data_t, bkgd_t, det) in enumerate(zip(data_timebins, bkgd_timebins, detectors)):
+    for data_t, bkgd_t, det, cspec in zip(data_timebins, bkgd_timebins, detectors, cspecs):
         
         data = data_t.slice(LC_time_start,LC_time_stop)
 
@@ -245,12 +246,12 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         
 
         if Detector.from_str(det).is_nai():
-            erange_low  = np.maximum(cspecs[i].energy_range[0], erange_nai[0])
-            erange_high = np.minimum(cspecs[i].energy_range[1], erange_nai[1])
+            erange_low  = np.maximum(cspec.energy_range[0], erange_nai[0])
+            erange_high = np.minimum(cspec.energy_range[1], erange_nai[1])
             output = Output_Directory+"LightCurves_Extra/"
         else:
-            erange_low  = np.maximum(cspecs[i].energy_range[0], erange_bgo[0])
-            erange_high = np.minimum(cspecs[i].energy_range[1], erange_bgo[1])
+            erange_low  = np.maximum(cspec.energy_range[0], erange_bgo[0])
+            erange_high = np.minimum(cspec.energy_range[1], erange_bgo[1])
             output = Output_Directory
 
         erange_det = (erange_low, erange_high)
@@ -260,21 +261,20 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
         with open(light_curve_output_name, 'w') as f:
             f.write(f"IP LINLIN\n")
-            f.write(f"DP 0.0 1.0e-15\n")
+            f.write(f"DP {0:.6f} {0:.6e}\n")
             for t,d in zip(centroids, excess):
-                f.write(f"DP {t} {d}\n")
+                f.write(f"DP {t:.6f} {d:.6e}\n")
             f.write(f"EN\n")
 
 
         # Define pyplot Figure and Axes
+        plot_title = f"Excess rates of detector: {det}. Energy range [{erange_det[0]:.1f}, {erange_det[1]:.1f}] keV."
         fig, axs = plt.subplots(1, figsize = (15,5) )
     
         axs.step(centroids, excess, label = 'Excess rates', color = 'C0', where = 'mid')
         axs.axvline(-LC_time_start, color='C1', label=f"Trigger: {-LC_time_start} s.")
-        axs.set_xlabel('Time s[s]', fontsize = 'large')
+        axs.set_xlabel('Time [s]', fontsize = 'large')
         axs.set_ylabel('Excess rates pdf [1/s]', fontsize = 'large')
-        
-        plot_title = 'Lightcurve. Excess rates of detector: '+det+'. Energy range '+str(erange_det)+' keV.'
         axs.set_title(plot_title, fontsize = 'large')
         axs.grid()
         axs.legend()
