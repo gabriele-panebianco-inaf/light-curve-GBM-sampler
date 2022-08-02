@@ -5,27 +5,18 @@ import logging
 import numpy as np
 import os
 
+from argparse import ArgumentParser
 from astropy.io import fits
 from astropy.table import QTable
 import astropy.units as u
 
 from write_light_curve import *
 
-
-# Put here some configuration parameters. Should I put them into a YAML file?
-GBM_Catalog = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/"
-GBM_Catalog+= "GBM_bursts_flnc_band.fits"
-Name_Transient = "GRB120817168" #"GRB160530667" #None
-Random_seed = 37
-Spectral_Model_Type = "flnc" # pflx or flnc
-Spectral_Model_Name = "band" # plaw, comp, band, sbpl
-Output_Directory = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/Output/"
-
-######################################################
-
-
-
-
+SPECTRAL_TYPE_LIST = ["flnc", "pflx"]
+SPECTRAL_TYPE_IMPL = ["flnc"]
+SPECTRAL_FUNC_LIST = ["plaw", "comp", "band", "sbpl"]
+SPECTRAL_FUNC_IMPL = ["band"]
+ 
 
 if __name__ == '__main__':
 
@@ -37,10 +28,35 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     
     # Set Script Arguments
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-f", "--configurationfile", help="name of the configuration YAML file")
-    # args = parser.parse_args()
+    parser = ArgumentParser(description="Sample a GRB from GBM Burst Archive")
+    parser.add_argument("-s", "--randomseed", help="Specify random seed.", type=int, default=None)
+    parser.add_argument("-t", "--transient", help="Name of the transient", type=str, default=None)
+    parser.add_argument("-type", "--spectraltype", help="Spectral Model Type", type=str, default="flnc")
+    parser.add_argument("-func", "--spectralfunc", help="Spectral Model Function", type=str, default="band")
+    parser.add_argument("-c", "--catalogue", help="Input Transient Catalogue", type=str, default="./GBM_burst_archive/GBM_bursts_flnc_band.fits")
+    parser.add_argument("-o", "--outputdir", help="Output Directory", type=str, default="./Output/")
+    args = parser.parse_args()
 
+    Random_seed    = args.randomseed   #37
+    Name_Transient = args.transient    #"GRB120817168" #"GRB160530667" #None
+    Spectral_Model_Type = args.spectraltype
+    Spectral_Model_Name = args.spectralfunc
+    GBM_Catalog = args.catalogue
+    Output_Directory = args.outputdir
+
+    if not (Spectral_Model_Type in SPECTRAL_TYPE_LIST):
+        raise ValueError(f"Spectral Fit type {Spectral_Model_Type} not supported. Supported types: {SPECTRAL_TYPE_LIST}.")
+    if not (Spectral_Model_Type in SPECTRAL_TYPE_IMPL):
+        raise NotImplementedError(f"Spectral Fit type {Spectral_Model_Type} not implemented. Currently implemented: {SPECTRAL_TYPE_IMPL}.")
+    
+    if not (Spectral_Model_Name in SPECTRAL_FUNC_LIST):
+        raise ValueError(f"Spectral Model {Spectral_Model_Name} not supported. Supported models: {SPECTRAL_FUNC_LIST}.")
+    if not (Spectral_Model_Name in SPECTRAL_FUNC_IMPL):
+        raise NotImplementedError(f"Spectral Model type {Spectral_Model_Name} not implemented. Currently implemented: {SPECTRAL_FUNC_IMPL}.")
+    
+
+    
+    
     # Load the GBM Burst Catalog
     with fits.open(GBM_Catalog) as hdulist:
         table_catalog = QTable.read(hdulist['CATALOG'])
@@ -82,9 +98,7 @@ if __name__ == '__main__':
     else:
         logger.info(f"Transient {transient['name']} was randomly chosen.\n")
 
-    # Check correct input
-    if Spectral_Model_Name != "band":
-        raise NotImplementedError("Only band spectral models allowed.")
+
 
 
     # Define Transient Parameters
@@ -118,7 +132,6 @@ if __name__ == '__main__':
     logger.info(f"RANDOM Polarization phase: {polarization_phase}")
 
     logger.info(f"{60*'='}\n")
-
 
     # Gaussian Light Curve
     light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
