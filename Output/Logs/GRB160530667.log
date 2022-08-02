@@ -1,50 +1,52 @@
-2022-08-02 21:08:54,687. INFO: GBM Bursts Catalog: ./GBM_burst_archive/GBM_bursts_flnc_band.fits
-2022-08-02 21:08:54,687. INFO: Number of GRBs in the catalog: 2309.
-2022-08-02 21:08:54,687. INFO: Set Random seed: 0.
-2022-08-02 21:08:54,687. INFO: Transient GRB160530667 was requested.
+2022-08-02 23:43:07,514. INFO: GBM Bursts Catalog: ./GBM_burst_archive/GBM_bursts_flnc_band.fits
+2022-08-02 23:43:07,514. INFO: Number of GRBs in the catalog: 2309.
+2022-08-02 23:43:07,515. INFO: Set Random seed: 0.
+2022-08-02 23:43:07,515. INFO: Transient GRB160530667 was requested.
 
-2022-08-02 21:08:54,688. INFO: ===============TRANSIENT PARAMETERS=========================
-2022-08-02 21:08:54,688. INFO: Galactic coordinates: l=177.52511445 deg, b=39.99308244 deg.
-2022-08-02 21:08:54,688. INFO: Spectral model: band. Type: flnc.
-2022-08-02 21:08:54,688. INFO: flnc_band_ampl : 0.11191186 1 / (cm2 keV s)
-2022-08-02 21:08:54,688. INFO: flnc_band_epeak: 181.77051 keV
-2022-08-02 21:08:54,688. INFO: flnc_band_alpha: -0.6819976
-2022-08-02 21:08:54,688. INFO: flnc_band_beta : -2.4990304
-2022-08-02 21:08:54,689. INFO: flnc_band_epiv : 100.0 keV
-2022-08-02 21:08:54,689. INFO: flnc_band_phtflux : 18.571352 1 / (cm2 s)
-2022-08-02 21:08:54,689. INFO: RANDOM Polarization amplitude: 0.6369616873214543
-2022-08-02 21:08:54,689. INFO: RANDOM Polarization phase: 48.561608477496655
-2022-08-02 21:08:54,689. INFO: ============================================================
+2022-08-02 23:43:07,515. INFO: ===============TRANSIENT PARAMETERS=========================
+2022-08-02 23:43:07,515. INFO: Galactic coordinates: l=177.52511445 deg, b=39.99308244 deg.
+2022-08-02 23:43:07,515. INFO: Spectral model: band. Type: flnc.
+2022-08-02 23:43:07,515. INFO: flnc_band_ampl : 0.11191186 1 / (cm2 keV s)
+2022-08-02 23:43:07,515. INFO: flnc_band_epeak: 181.77051 keV
+2022-08-02 23:43:07,515. INFO: flnc_band_alpha: -0.6819976
+2022-08-02 23:43:07,515. INFO: flnc_band_beta : -2.4990304
+2022-08-02 23:43:07,515. INFO: flnc_band_epiv : 100.0 keV
+2022-08-02 23:43:07,515. INFO: flnc_band_phtflux : 18.571352 1 / (cm2 s)
+2022-08-02 23:43:07,516. INFO: RANDOM Polarization amplitude: 0.6369616873214543
+2022-08-02 23:43:07,516. INFO: RANDOM Polarization phase: 48.561608477496655
+2022-08-02 23:43:07,516. INFO: ============================================================
 
-2022-08-02 21:08:54,689. INFO: ===============GAUSSIAN LIGHT CURVE=========================
-2022-08-02 21:08:54,690. INFO: Highest flux recorded in catalog at [5.632 s] from trigger time.
-2022-08-02 21:08:54,690. INFO: GBM t90: 9.02415 s.
-2022-08-02 21:08:54,690. INFO: Gaussian Pulse sigma: 2.7431468223482955 s.
-2022-08-02 21:08:54,692. INFO: Evaluate 117 time points in [-4.12 s,24.75 s]. Step = 0.24576 s.
-2022-08-02 21:08:54,693. INFO: Shift time axis by -4.12 s. Trigger is at 4.12 s, Stop at 28.87 s.
-2022-08-02 21:08:54,693. INFO: Write Gaussian Light Curve: ./Output/Light_Curves_Extra/GRB160530667_gauss.dat
-2022-08-02 21:08:54,865. INFO: ============================================================
+2022-08-02 23:43:07,516. INFO: ===============GAUSSIAN LIGHT CURVE=========================
+2022-08-02 23:43:07,516. INFO: Highest flux recorded in catalog at [5.632 s] from trigger time.
+2022-08-02 23:43:07,517. INFO: GBM t90: 9.02415 s.
+2022-08-02 23:43:07,517. INFO: Gaussian Pulse sigma: 2.7431468223482955 s.
+2022-08-02 23:43:07,518. INFO: Evaluate 117 time points in [-4.12 s,24.75 s]. Step = 0.24576 s.
+2022-08-02 23:43:07,519. INFO: Shift time axis by -4.12 s. Trigger is at 4.12 s, Stop at 28.87 s.
+2022-08-02 23:43:07,519. INFO: Write Gaussian Light Curve: ./Output/Light_Curves_Extra/GRB160530667_gauss.dat
+2022-08-02 23:43:07,657. INFO: ============================================================
 
-2022-08-02 21:08:54,865. INFO: ===============EMPIRICAL GBM LIGHT CURVE==============================
-2022-08-02 21:08:54,865. INFO: List of detectors used by the GBM analysis: ['n1', 'n2', 'n5', 'b0'].
-2022-08-02 21:08:54,866. INFO: Connect to database...
-2022-08-02 21:09:16,434. INFO: Det: n1 | Energy: (4.062647, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s.
-2022-08-02 21:09:16,434. INFO: Det: n5 | Energy: (4.246656, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s.
-2022-08-02 21:09:16,434. INFO: Det: n2 | Energy: (4.602642, 2000.0) keV | Time: (-12.533760000000001, 35.6352) s.
-2022-08-02 21:09:16,434. INFO: Det: b0 | Energy: (113.24812, 50000.0) keV | Time: (-12.533760000000001, 35.6352) s.
-2022-08-02 21:09:16,436. INFO: Fit Background in [(-12.38, -4.12), (24.75, 35.5)] s with a 1-order polynomial in time.
-2022-08-02 21:09:16,436. INFO: Fluency: start,stop: [-18.432,30.720] s. Binning step: 0.246 s.
-2022-08-02 21:09:16,905. INFO: Slice Light curves between [-4.12,24.75] s.
-2022-08-02 21:09:16,906. INFO: n1 | Shift Time Axis by -4.055 s. End at 28.81 s.
-2022-08-02 21:09:16,907. INFO: n1 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n1.dat
-2022-08-02 21:09:17,031. INFO: n5 | Shift Time Axis by -4.055 s. End at 28.81 s.
-2022-08-02 21:09:17,031. INFO: n5 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n5.dat
-2022-08-02 21:09:17,141. INFO: n2 | Shift Time Axis by -4.055 s. End at 28.81 s.
-2022-08-02 21:09:17,142. INFO: n2 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n2.dat
-2022-08-02 21:09:17,245. INFO: b0 | Shift Time Axis by -4.055 s. End at 28.81 s.
-2022-08-02 21:09:17,245. INFO: b0 | Write Light Curve: ./Output/GRB160530667_b0.dat
-2022-08-02 21:09:17,339. INFO: Delete temporary GBM files and directory
-2022-08-02 21:09:17,339. INFO: ======================================================================
+2022-08-02 23:43:07,657. INFO: ===============EMPIRICAL GBM LIGHT CURVE==============================
+2022-08-02 23:43:07,658. INFO: List of detectors used by the GBM analysis: ['n1', 'n2', 'n5', 'b0'].
+2022-08-02 23:43:07,658. INFO: Connect to database...
+2022-08-02 23:43:49,155. INFO: Det: n1 | Energy: (4.062647, 2000.0) keV | Time: (-12.453327, 35.555151) s.
+2022-08-02 23:43:49,155. INFO: Det: n5 | Energy: (4.246656, 2000.0) keV | Time: (-12.453327, 35.555151) s.
+2022-08-02 23:43:49,155. INFO: Det: n2 | Energy: (4.602642, 2000.0) keV | Time: (-12.453327, 35.555151) s.
+2022-08-02 23:43:49,155. INFO: Det: b0 | Energy: (113.24812, 50000.0) keV | Time: (-12.453327, 35.555151) s.
+2022-08-02 23:43:49,157. INFO: Fit Background in [(-12.38, -4.12), (24.75, 35.5)] s with a 2-order polynomial in time.
+2022-08-02 23:43:49,157. INFO: Fluency: start,stop: [-18.432,30.720] s.
+2022-08-02 23:43:49,157. INFO: Time Binning: 0.090 s. It is 1/100 of T90: 9.02415 s.
+2022-08-02 23:43:50,232. INFO: Slice Light curves between [-4.12,24.75] s.
+2022-08-02 23:43:50,232. INFO: Shift Time Axis by -4.106 s. End at 28.86 s.
+2022-08-02 23:43:50,233. WARNING: Data and Background arrays not defined at the same time array. Interpolate background rates.
+2022-08-02 23:43:50,233. INFO: n1 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n1.dat
+2022-08-02 23:43:50,337. WARNING: Data and Background arrays not defined at the same time array. Interpolate background rates.
+2022-08-02 23:43:50,338. INFO: n5 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n5.dat
+2022-08-02 23:43:50,446. WARNING: Data and Background arrays not defined at the same time array. Interpolate background rates.
+2022-08-02 23:43:50,446. INFO: n2 | Write Light Curve: ./Output/Light_Curves_Extra/GRB160530667_n2.dat
+2022-08-02 23:43:50,556. WARNING: Data and Background arrays not defined at the same time array. Interpolate background rates.
+2022-08-02 23:43:50,556. INFO: b0 | Write Light Curve: ./Output/GRB160530667_b0.dat
+2022-08-02 23:43:50,655. INFO: Delete temporary GBM files and directory
+2022-08-02 23:43:50,656. INFO: ======================================================================
 
-2022-08-02 21:09:17,340. INFO: Write Source file: ./Output/GRB160530667.source
-2022-08-02 21:09:17,340. INFO: Total execution time: 26.569 s.
+2022-08-02 23:43:50,656. INFO: Write Source file: ./Output/GRB160530667.source
+2022-08-02 23:43:50,657. INFO: Total execution time: 47.242 s.

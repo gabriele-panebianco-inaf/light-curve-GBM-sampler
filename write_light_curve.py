@@ -20,6 +20,7 @@ DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb
 FIGURE_FORMAT = ".pdf"
 ERANGE_NAI = ( 10.0,   900.0) #   8 keV -  1 MeV recommended
 ERANGE_BGO = ( 10.0, 50000.0) # 150 keV - 40 MeV recommended
+FLUX_THRESHOLD = 15.0 # ph/s/cm2
 
 class Light_Curve_Info:
     def __init__(self, output_name="", trigger=0.0, step=0.0, stop=0.0, num=0, det="", emin=0.0, emax=0.0):
@@ -55,8 +56,36 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     """
     logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{30*'='}")
     Temp_Directory = Output_Directory+".Temp/"
+    LC_info = Light_Curve_Info()
+    
+    # bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
+
+    if transient['flnc_band_phtflux'].value>FLUX_THRESHOLD:
+        time_resolution = 100.0
+    else:
+        time_resolution = 20.0
+    bintime = transient['t90'].unmasked.value/ time_resolution
+    
+    # Time range for first time slice (with background intervals)
+    time_range = (transient['back_interval_low_start'].unmasked.value,
+                  transient['back_interval_high_stop'].unmasked.value
+                 )
+
+
+    # Time range for background fit
+    bkgd_range = [(transient['back_interval_low_start' ].unmasked.value,
+                   transient['back_interval_low_stop'  ].unmasked.value),
+                  (transient['back_interval_high_start'].unmasked.value,
+                   transient['back_interval_high_stop' ].unmasked.value)
+                 ]
+
+    # Time range for second time slice (no background intervals)
+    LC_time_start= np.maximum(transient['flnc_spectrum_start'].value, transient['back_interval_low_stop'  ].unmasked.value)
+    LC_time_stop = np.minimum(transient['flnc_spectrum_stop' ].value, transient['back_interval_high_start'].unmasked.value)
+
 
     
+    # Choose and download data
     try:
         # Read the Detector Mask, turn it into booleans
         det_mask = list(transient['scat_detector_mask'])
@@ -81,32 +110,28 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         raise
 
 
-    # Load the TTE files
+    # Load the TTE files, perform time binning to turn them into CSPEC files
     tte_filenames = [f for f in os.listdir(Temp_Directory) if isfile(join(Temp_Directory, f))]
     ttes = [TTE.open(Temp_Directory+f) for f in tte_filenames]
-
-    # Time binning: turn the TTE files into CSPEC files
-    bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
-    time_range = (transient['back_interval_low_start'].unmasked.value, transient['back_interval_high_stop'].unmasked.value)
-
     cspecs = [t.to_phaii(bin_by_time, bintime, time_range = time_range, time_ref = 0.0) for t in ttes]
     cspecs = GbmDetectorCollection.from_list(cspecs)
 
     [logger.info(f"Det: {c.detector} | Energy: {c.energy_range} keV | Time: {c.time_range} s.") for c in cspecs]
     
 
-    # Background Fitting to get the excess
-    bkgd_range = [(transient['back_interval_low_start'].unmasked.value, transient['back_interval_low_stop'].unmasked.value), (transient['back_interval_high_start'].unmasked.value, transient['back_interval_high_stop'].unmasked.value)]
+    # Fit Background
     backfitters = [BackgroundFitter.from_phaii(cspec, Polynomial, time_ranges = bkgd_range) for cspec in cspecs]
     backfitters = GbmDetectorCollection.from_list(backfitters, dets=cspecs.detector())
 
-    logger.info(f"Fit Background in {bkgd_range} s with a 1-order polynomial in time.")
-    logger.info(f"Fluency: start,stop: [{transient['flnc_spectrum_start'].value:.3f},{transient['flnc_spectrum_stop'].value:.3f}] s. Binning step: {bintime:.3f} s.")
+    logger.info(f"Fit Background in {bkgd_range} s with a 2-order polynomial in time.")
+    logger.info(f"Fluency: start,stop: [{transient['flnc_spectrum_start'].value:.3f},{transient['flnc_spectrum_stop'].value:.3f}] s.")
+    logger.info(f"Time Binning: {bintime:.3f} s. It is 1/{time_resolution:.0f} of T90: {transient['t90'].unmasked}.")
 
-    backfitters.fit(order = 1)
+    backfitters.fit(order = 2)
 
     bkgds = backfitters.interpolate_bins(cspecs.data()[0].tstart, cspecs.data()[0].tstop)
     bkgds = GbmDetectorCollection.from_list(bkgds, dets=cspecs.detector())
+
 
     # Energy integration of data and background
     data_timebins = cspecs.to_lightcurve(nai_kwargs = {'energy_range':ERANGE_NAI},
@@ -116,42 +141,40 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
                                            bgo_args = ERANGE_BGO
                                           )
 
-    # Write the Lightcurves
 
-    LC_time_start= np.maximum(transient['flnc_spectrum_start'].value, transient['back_interval_low_stop'].unmasked.value)
-    LC_time_stop = np.minimum(transient['flnc_spectrum_stop' ].value, transient['back_interval_high_start'].unmasked.value)
+    # Slice the light curve data and define Offset
+    light_curve_data = [d.slice(LC_time_start, LC_time_stop) for d in data_timebins]
+    Time_Offset = light_curve_data[0].centroids[0] # All Light curves have the same binning.
+    Trigger_shifted = - Time_Offset
+    Stop_shifted = LC_time_stop-Time_Offset
 
     logger.info(f"Slice Light curves between [{LC_time_start},{LC_time_stop}] s.")
-    light_curve_data = [d.slice(LC_time_start, LC_time_stop) for d in data_timebins]
-
-    LC_info = Light_Curve_Info()
-
+    logger.info(f"Shift Time Axis by {Time_Offset:.3f} s. End at {Stop_shifted:.2f} s.")
+    
+    # Write the light curves
     for data, bkgd_t, cspec in zip(light_curve_data, bkgd_timebins, cspecs):
 
+        # Background from BackgroundRates (bugged) to TimeBins
         bkgd_t_lo_edges = bkgd_t.time_centroids - 0.5* bkgd_t.time_widths # data_t.lo_edges
         bkgd_t_hi_edges = bkgd_t.time_centroids + 0.5* bkgd_t.time_widths # data_t.hi_edges
         bkgd = TimeBins(bkgd_t.counts, bkgd_t_lo_edges, bkgd_t_hi_edges, bkgd_t.exposure)
         bkgd = bkgd.slice(LC_time_start, LC_time_stop)
         
         # Check we have the same time bins
-        if np.allclose(data.centroids, bkgd.centroids):
+        try:
+            if len(data.centroids)!=bkgd.centroids:
+                raise
+            np.allclose(data.centroids, bkgd.centroids)
             Background_Rates = bkgd.rates
-        else:
-            logger.warning(f"Data and Background arrays not defined at the same time array.")
-            logger.warning(f"Perform interpolation of the Background Rates.")
+        except:
+            logger.warning(f"Data and Background arrays not defined at the same time array. Interpolate background rates.")
             f = interp1d(bkgd.centroids, bkgd.rates)
             Background_Rates = f(data.centroids)
-
+        
 
         # Time shift
-        Time_Offset = data.centroids[0]
         Centroids_shifted = data.centroids - Time_Offset
-        Trigger_shifted = - Time_Offset
-        Stop_shifted = LC_time_stop-Time_Offset
         
-        logger.info(f"{cspec.detector} | Shift Time Axis by {Time_Offset:.3f} s. End at {Stop_shifted:.2f} s.")
- 
-
         # Compute Excess Rates
         Excess = data.rates - Background_Rates
 
@@ -160,6 +183,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         
         # Normalize sum to 1
         Excess /= np.sum(Excess*data.widths)
+
+        # ######################################################
         
         # Define energy range and directory where to save the current light curve
         if Detector.from_str(cspec.detector).is_nai():
@@ -182,14 +207,17 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
         os.makedirs(os.path.dirname(output), exist_ok=True)
         light_curve_output_name = output+f"{transient['name']}_{cspec.detector}.dat"
+
         logger.info(f"{cspec.detector} | Write Light Curve: {light_curve_output_name}")
 
+        # Write the Light Curve as a text file
         with open(light_curve_output_name, 'w') as f:
             f.write(f"IP LINLIN\n")
-            #f.write(f"DP {0:.6f} {0:.6e}\n")
             for t,d in zip(Centroids_shifted, Excess):
                 f.write(f"DP {t:.6f} {d:.6e}\n")
             f.write(f"EN\n")
+        
+        # ######################################################
 
         # Define pyplot Figure and Axes
         plot_title = f"Excess rates of detector: {cspec.detector}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
@@ -198,6 +226,14 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         fig, axs = plt.subplots(1, figsize = (15,5) )
         axs.step(Centroids_shifted, Excess, label = 'Excess rates', color = 'C0', where = 'mid')
         axs.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted} s.")
+
+        axs.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak bin.")
+        axs.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
+        axs.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90.")
+        axs.axvline(transient['t90_start'].unmasked.value+transient['t90'].unmasked.value-Time_Offset, color='C3')
+        axs.axvline(transient['t50_start'].unmasked.value-Time_Offset, color='C4', label="T50.")
+        axs.axvline(transient['t50_start'].unmasked.value+transient['t50'].unmasked.value-Time_Offset, color='C4')
+
         axs.set_xlabel('Time [s]', fontsize = 'large')
         axs.set_ylabel('Excess rates pdf [1/s]', fontsize = 'large')
         axs.set_title(plot_title, fontsize = 'large')
