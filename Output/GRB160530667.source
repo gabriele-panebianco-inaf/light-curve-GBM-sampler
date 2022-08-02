@@ -37,7 +37,7 @@ GRB160530667.Lightcurve     File false ./GRB160530667_b0.dat
 
 # Info on the Light curve.
 # 1st column is the time point in [s]. GBM times are expressed wrt trigger time, we shifted them to start the simulation from 0.0.
-# After the shift GBM Trigger time is at 4.12000 s. Light curve stops at 28.87000 s. Time resolution is 0.24576 s. There are 119 points.
+# After the shift GBM Trigger time is at 4.05504 s. Light curve stops at 28.80504 s. Time resolution is 0.24576 s. There are 118 points.
 # 2nd column is light curve value in [1/s]. Time integral of the light curve is normalized to 1 like a Probability Distribution Function.
 # The light curve values are excess rates: observed data - best fit background model. Negative excess rates are manually set to 0.0.
 # We selected the events from GBM detector b0 with energy in [113.2,50000.0] keV.
