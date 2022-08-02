@@ -158,12 +158,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
 
     # Find the Burst data in the Online Archive
-    logger.info(f"Connect to database...")
-    trig_finder = TriggerFtp(transient['trigger_name'][2:])
-
     # Make a Directory to host the TTE Data and Download them
     try:
-        Temp_Directory = Output_Directory+"Temp/"
+        logger.info(f"Connect to database...")
+        trig_finder = TriggerFtp(transient['trigger_name'][2:])
+        Temp_Directory = Output_Directory+".Temp/"
         os.makedirs(os.path.dirname(Temp_Directory), exist_ok=True)
         trig_finder.get_tte(Temp_Directory, dets=detectors)
     except:

@@ -5,6 +5,8 @@
 #*.fits
 *.pdf
 glg_tte*
+*.dat
+*.source
 
 
 
@@ -14,7 +16,8 @@ __*
 .vscode
 .ipynb_checkpoints
 Light_Curves_Extra
-Temp
+.Temp
+Output
 
 # Files
 GBM_bursts.fits
