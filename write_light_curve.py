@@ -36,7 +36,7 @@ class Light_Curve_Info:
 
 
 
-def Empirical_Light_Curve(transient, logger, Output_Directory):
+def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     """
     Given a transient name find its trigger data, download it, analyze it and get the light curve.
 
@@ -48,6 +48,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         Logger from main.
     Output_Directory : str
         Path to the Output directory.
+    Use_Nai : bool
+        Make Light Curves for NaIs.
 
     Returns
     -------
@@ -58,13 +60,14 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     Temp_Directory = Output_Directory+".Temp/"
     LC_info = Light_Curve_Info()
     
-    # bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
 
     if transient['flnc_band_phtflux'].value>FLUX_THRESHOLD:
         time_resolution = 100.0
     else:
         time_resolution = 20.0
     bintime = transient['t90'].unmasked.value/ time_resolution
+    # bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
+
     
     # Time range for first time slice (with background intervals)
     time_range = (transient['back_interval_low_start'].unmasked.value,
@@ -91,7 +94,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
         det_mask = list(transient['scat_detector_mask'])
         det_mask = [bool(int(d)) for d in det_mask]
         detectors = DETECTORS[det_mask].tolist()
-        # detectors = [detectors[-1]] # Select only the BGO
+        if not Use_NaI:
+            detectors = [detectors[-1]] # Select only the BGO
 
         logger.info(f"List of detectors used by the GBM analysis: {detectors}.")
         logger.info(f"Connect to database...")
@@ -123,11 +127,23 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
     backfitters = [BackgroundFitter.from_phaii(cspec, Polynomial, time_ranges = bkgd_range) for cspec in cspecs]
     backfitters = GbmDetectorCollection.from_list(backfitters, dets=cspecs.detector())
 
-    logger.info(f"Fit Background in {bkgd_range} s with a 2-order polynomial in time.")
     logger.info(f"Fluency: start,stop: [{transient['flnc_spectrum_start'].value:.3f},{transient['flnc_spectrum_stop'].value:.3f}] s.")
     logger.info(f"Time Binning: {bintime:.3f} s. It is 1/{time_resolution:.0f} of T90: {transient['t90'].unmasked}.")
+    logger.info(f"Try Fit Background in {bkgd_range} s with a 2-order polynomial in time.")
 
-    backfitters.fit(order = 2)
+    try:
+        backfitters.fit(order = 2)
+    except np.linalg.LinAlgError:
+        logger.error("Fit with order 2 failed. Try order 1")
+        try:
+            backfitters.fit(order = 1)
+        except:
+            logger.error("Fit with order 1 failed. Run the code without NaIs.")
+            shutil.rmtree(Temp_Directory)
+            logger.error("Delete temporary GBM files and directory.")
+            raise
+
+
 
     bkgds = backfitters.interpolate_bins(cspecs.data()[0].tstart, cspecs.data()[0].tstop)
     bkgds = GbmDetectorCollection.from_list(bkgds, dets=cspecs.detector())
@@ -180,7 +196,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory):
 
         # Negative values to 0
         Excess = np.where(Excess < 0, 0.0, Excess)
-        
+
         # Normalize sum to 1
         Excess /= np.sum(Excess*data.widths)
 

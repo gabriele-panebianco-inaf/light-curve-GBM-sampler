@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument("-func", "--spectralfunc", help="Spectral Model Function", type=str, default="band")
     parser.add_argument("-c", "--catalogue", help="Input Transient Catalogue", type=str, default="./GBM_burst_archive/GBM_bursts_flnc_band.fits")
     parser.add_argument("-o", "--outputdir", help="Output Directory", type=str, default="./Output/")
+    parser.add_argument("-nai", "--usenai", help="Download and produce LC of NaIs", type=int, default=1)
     args = parser.parse_args()
 
     Random_seed    = args.randomseed   #37
@@ -43,6 +44,7 @@ if __name__ == '__main__':
     Spectral_Model_Name = args.spectralfunc
     GBM_Catalog = args.catalogue
     Output_Directory = args.outputdir
+    Use_Nai = bool(args.usenai)
 
     if not (Spectral_Model_Type in SPECTRAL_TYPE_LIST):
         raise ValueError(f"Spectral Fit type {Spectral_Model_Type} not supported. Supported types: {SPECTRAL_TYPE_LIST}.")
@@ -133,11 +135,19 @@ if __name__ == '__main__':
 
     logger.info(f"{60*'='}\n")
 
-    # Gaussian Light Curve
-    light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
 
-    # Empirical Light Curve
-    LC_info = Empirical_Light_Curve(transient, logger, Output_Directory)
+    try:
+        # Gaussian Light Curve
+        light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
+        
+        # Empirical Light Curve
+        os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
+        LC_info = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
+    except:
+        logger.error("Delete temporary GBM files and directory")
+        shutil.rmtree(Output_Directory+".Temp/")
+        raise
+
 
 
     # Write a source file
