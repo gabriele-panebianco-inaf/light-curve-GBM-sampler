@@ -203,6 +203,7 @@ if __name__ == '__main__':
         f.write(f"Run                         {RunName}\n")
         f.write(f"{RunName}.FileName             {SourceName}\n")
         f.write(f"{RunName}.Time                 {RunTime}\n")
+        f.write(f"{RunName}.OrientationSky       Galactic Fixed 180.0 90.0\n")
         f.write(f"{RunName}.Source               {SourceName}\n")
         f.write(f"{SourceName}.ParticleType   {SourceParticleType}\n")
         f.write(f"{SourceName}.Beam           {SourceName_Beam} {0} {0}\n")
