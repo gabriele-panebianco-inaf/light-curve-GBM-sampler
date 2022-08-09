@@ -195,10 +195,10 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         Excess = data.rates - Background_Rates
 
         # Negative values to 0
-        Excess = np.where(Excess < 0, 0.0, Excess)
+        #Excess = np.where(Excess < 0, 0.0, Excess)
 
         # Normalize sum to 1
-        Excess /= np.sum(Excess*data.widths)
+        #Excess /= np.sum(Excess*data.widths)
 
         # ######################################################
         

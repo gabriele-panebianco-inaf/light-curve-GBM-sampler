@@ -138,7 +138,7 @@ if __name__ == '__main__':
 
     try:
         # Gaussian Light Curve
-        light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
+        #light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
         
         # Empirical Light Curve
         os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
@@ -207,7 +207,9 @@ if __name__ == '__main__':
         f.write(f"{RunName}.Source               {SourceName}\n")
         f.write(f"{SourceName}.ParticleType   {SourceParticleType}\n")
         f.write(f"{SourceName}.Beam           {SourceName_Beam} {0} {0}\n")
-        f.write(f"{SourceName}.Orientation    Galactic Fixed {lii} {bii}\n")
+
+        f.write(f"# Orientation: Latitude b [deg], Longitude l [deg]\n")
+        f.write(f"{SourceName}.Orientation    Galactic Fixed {bii} {lii}\n")
         
         f.write(f"\n# Band Spectrum parameters: Flux integration min and max energies, alpha, beta, epeak\n")
         f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha} {beta} {epeak.value}\n")
@@ -220,6 +222,7 @@ if __name__ == '__main__':
         
         f.write(f"\n# GBM Light Curve.\n")
         f.write(f"{SourceName}.Lightcurve     File false {LC_info.output_name}\n")  # false: not repeating
+        
         f.write(f"\n# Info on the Light curve.\n")
         f.write(f"# 1st column is the time point in [s]. GBM times are expressed wrt trigger time, we shifted them to start the simulation from 0.0.\n")
         f.write(f"# After the shift GBM Trigger time is at {LC_info.trigger:.5f} s. Light curve stops at {LC_info.stop:.5f} s. Time resolution is {LC_info.step:.5f} s. There are {LC_info.num} points.\n")
