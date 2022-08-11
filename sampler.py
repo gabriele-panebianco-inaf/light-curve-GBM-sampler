@@ -16,7 +16,7 @@ SPECTRAL_TYPE_LIST = ["flnc", "pflx"]
 SPECTRAL_TYPE_IMPL = ["flnc"]
 SPECTRAL_FUNC_LIST = ["plaw", "comp", "band", "sbpl"]
 SPECTRAL_FUNC_IMPL = ["band"]
- 
+DEFAULT_CATALOG = "./GBM_burst_archive/GBM_bursts_flnc_band.fits"
 
 if __name__ == '__main__':
 
@@ -29,22 +29,22 @@ if __name__ == '__main__':
     
     # Set Script Arguments
     parser = ArgumentParser(description="Sample a GRB from GBM Burst Archive")
-    parser.add_argument("-s", "--randomseed", help="Specify random seed.", type=int, default=None)
-    parser.add_argument("-t", "--transient", help="Name of the transient", type=str, default=None)
-    parser.add_argument("-type", "--spectraltype", help="Spectral Model Type", type=str, default="flnc")
-    parser.add_argument("-func", "--spectralfunc", help="Spectral Model Function", type=str, default="band")
-    parser.add_argument("-c", "--catalogue", help="Input Transient Catalogue", type=str, default="./GBM_burst_archive/GBM_bursts_flnc_band.fits")
-    parser.add_argument("-o", "--outputdir", help="Output Directory", type=str, default="./Output/")
-    parser.add_argument("-nai", "--usenai", help="Download and produce LC of NaIs", type=int, default=1)
+    parser.add_argument("-s"   , "--randomseed"  , help="Specify random seed."           , type=int, default=None)
+    parser.add_argument("-t"   , "--transient"   , help="Name of the transient"          , type=str, default=None)
+    parser.add_argument("-type", "--spectraltype", help="Spectral Model Type"            , type=str, default="flnc")
+    parser.add_argument("-func", "--spectralfunc", help="Spectral Model Function"        , type=str, default="band")
+    parser.add_argument("-c"   , "--catalogue"   , help="Input Transient Catalogue"      , type=str, default=DEFAULT_CATALOG)
+    parser.add_argument("-o"   , "--outputdir"   , help="Output Directory"               , type=str, default="./Output/")
+    parser.add_argument("-nai" , "--usenai"      , help="Download and produce LC of NaIs", type=int, default=1)
     args = parser.parse_args()
 
-    Random_seed    = args.randomseed   #37
-    Name_Transient = args.transient    #"GRB120817168" #"GRB160530667" #None
+    Random_seed         = args.randomseed
+    Name_Transient      = args.transient
     Spectral_Model_Type = args.spectraltype
     Spectral_Model_Name = args.spectralfunc
-    GBM_Catalog = args.catalogue
-    Output_Directory = args.outputdir
-    Use_Nai = bool(args.usenai)
+    GBM_Catalog         = args.catalogue
+    Output_Directory    = args.outputdir
+    Use_Nai        = bool(args.usenai)
 
     if not (Spectral_Model_Type in SPECTRAL_TYPE_LIST):
         raise ValueError(f"Spectral Fit type {Spectral_Model_Type} not supported. Supported types: {SPECTRAL_TYPE_LIST}.")
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
 
     # Define Transient Parameters
-    logger.info(f"{15*'='}TRANSIENT PARAMETERS{25*'='}")
+    logger.info(f"{15*'='}TRANSIENT PARAMETERS{35*'='}")
 
     lii = transient['lii'].to("deg").value
     bii = transient['bii'].to("deg").value
@@ -112,28 +112,30 @@ if __name__ == '__main__':
     ampl  = transient[label+'ampl' ]
     epeak = transient[label+'epeak']
     alpha = transient[label+'alpha']
+    ebreak= epeak / (2+alpha)
     beta  = transient[label+'beta' ]
     epiv  = 100 * u.keV
     flux = transient[label+'phtflux']
     
     logger.info(f"Galactic coordinates: l={lii} deg, b={bii} deg.")
     logger.info(f"Spectral model: {Spectral_Model_Name}. Type: {Spectral_Model_Type}.")
-    logger.info(f"{label}ampl : {ampl }")
-    logger.info(f"{label}epeak: {epeak}")
-    logger.info(f"{label}alpha: {alpha}")
-    logger.info(f"{label}beta : {beta }")
-    logger.info(f"{label}epiv : {epiv }")
-    logger.info(f"{label}phtflux : {flux}")
+    logger.info(f"{label}ampl  : {ampl.value:.3e} {ampl.unit}.")
+    logger.info(f"{label}epeak : {epeak.value:.1f} {epeak.unit}.")
+    logger.info(f"{label}ebreak: {ebreak.value:.1f} {ebreak.unit}.")
+    logger.info(f"{label}alpha : {alpha:.3f}.")
+    logger.info(f"{label}beta  : {beta:.3f}.")
+    logger.info(f"{label}epiv  : {epiv.value:.0f} {epiv.unit}.")
+    logger.info(f"{label}phtflux : {flux.value:.3f} {flux.unit}.")
 
 
     # Sample two random numbers for polarization
     polarization_ampli = rng.random()         # random number bewtween [0,1)
     polarization_phase = rng.random() * 180.0 # random number bewtween [0,180.0)
 
-    logger.info(f"RANDOM Polarization amplitude: {polarization_ampli}")
-    logger.info(f"RANDOM Polarization phase: {polarization_phase}")
+    logger.info(f"RANDOM Polarization amplitude: {polarization_ampli:.5f}")
+    logger.info(f"RANDOM Polarization phase    : {polarization_phase:.5f}")
 
-    logger.info(f"{60*'='}\n")
+    logger.info(f"{70*'='}\n")
 
 
     try:
@@ -211,14 +213,14 @@ if __name__ == '__main__':
         f.write(f"# Orientation: Latitude b [deg], Longitude l [deg]\n")
         f.write(f"{SourceName}.Orientation    Galactic Fixed {bii} {lii}\n")
         
-        f.write(f"\n# Band Spectrum parameters: Flux integration min and max energies, alpha, beta, epeak\n")
-        f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha} {beta} {epeak.value}\n")
+        f.write(f"\n# Band Spectrum parameters: Flux integration min and max energies, alpha, beta, ebreak\n")
+        f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha:.3f} {beta:.3f} {ebreak.value:.3f}\n")
         
         f.write(f"\n# Average photon flux, in photon/cm2/s, for a Band function law fit to a single spectrum over the duration of the burst.\n")
-        f.write(f"{SourceName}.Flux           {flux.value}\n")
+        f.write(f"{SourceName}.Flux           {flux.value:.4f}\n")
         
         f.write(f"\n# Polarization: random numbers from constant distribution. 1st one in [0,1], 2nd one in [0,180]\n")
-        f.write(f"{SourceName}.Polarization   RelativeX {polarization_ampli} {polarization_phase}\n")
+        f.write(f"{SourceName}.Polarization   RelativeX {polarization_ampli:.5f} {polarization_phase:.5f}\n")
         
         f.write(f"\n# GBM Light Curve.\n")
         f.write(f"{SourceName}.Lightcurve     File false {LC_info.output_name}\n")  # false: not repeating

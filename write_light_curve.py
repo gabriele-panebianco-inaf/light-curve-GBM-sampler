@@ -18,9 +18,9 @@ from gbm.finder import TriggerFtp
 
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
 FIGURE_FORMAT = ".pdf"
-ERANGE_NAI = ( 10.0,   900.0) #   8 keV -  1 MeV recommended
-ERANGE_BGO = ( 10.0, 50000.0) # 150 keV - 40 MeV recommended
-FLUX_THRESHOLD = 15.0 # ph/s/cm2
+ERANGE_NAI = (  8.0,   900.0) #   8 keV -  1 MeV recommended (8-900 by Eric)
+ERANGE_BGO = (250.0, 40000.0) # 150 keV - 40 MeV recommended (250-40 by Eric)
+FLUX_THRESHOLD = 15.0         # ph/s/cm2
 
 class Light_Curve_Info:
     def __init__(self, output_name="", trigger=0.0, step=0.0, stop=0.0, num=0, det="", emin=0.0, emax=0.0):
@@ -64,7 +64,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     if transient['flnc_band_phtflux'].value>FLUX_THRESHOLD:
         time_resolution = 100.0
     else:
-        time_resolution = 20.0
+        time_resolution = 50.0
     bintime = transient['t90'].unmasked.value/ time_resolution
     # bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
 
