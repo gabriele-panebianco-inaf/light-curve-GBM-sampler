@@ -8,7 +8,6 @@ import os
 from argparse import ArgumentParser
 from astropy.io import fits
 from astropy.table import QTable
-import astropy.units as u
 
 from write_light_curve import *
 

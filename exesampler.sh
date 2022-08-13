@@ -1,9 +1,11 @@
 #! usr/bin/bash
 
+python sampler.py -s 152
+
 # Okay
 #python sampler.py -s  0 -t GRB160530667
 #python sampler.py -s 37 -t GRB120323507
-python sampler.py -s 57                 # GRB090304216
+#python sampler.py -s 57                 # GRB090304216
 #python sampler.py -s 49 -t GRB121122885
 #python sampler.py -s 97 -t GRB141030746
 #python sampler.py -s 87 -t GRB150320462

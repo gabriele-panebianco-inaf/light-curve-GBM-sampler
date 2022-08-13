@@ -1,0 +1,65 @@
+# Info on the Light curve.
+# DP | Time point in [s] | Excess counts.
+# We shifted GBM times to start from 0.0. After the shift GBM Trigger time is at -0.00056 s. Light curve stops at 0.06344 s. Time resolution is 0.00112 s. There are 58 points.
+# Light curve values are Excess Counts = Observed GBM Counts - Best fit Background Model. Negative excess counts are clipped to 0.
+# We selected the events from GBM detector nb with energy in [8.0,900.0] keV.
+IP LINLIN
+DP 0.000000 3.0
+DP 0.001120 2.0
+DP 0.002240 1.0
+DP 0.003360 2.0
+DP 0.004480 2.0
+DP 0.005600 2.0
+DP 0.006720 3.0
+DP 0.007840 5.0
+DP 0.008960 1.0
+DP 0.010080 5.0
+DP 0.011200 4.0
+DP 0.012320 3.0
+DP 0.013440 3.0
+DP 0.014560 2.0
+DP 0.015680 4.0
+DP 0.016800 9.0
+DP 0.017920 3.0
+DP 0.019040 1.0
+DP 0.020160 3.0
+DP 0.021280 1.0
+DP 0.022400 3.0
+DP 0.023520 2.0
+DP 0.024640 3.0
+DP 0.025760 5.0
+DP 0.026880 3.0
+DP 0.028000 5.0
+DP 0.029120 11.0
+DP 0.030240 1.0
+DP 0.031360 4.0
+DP 0.032480 4.0
+DP 0.033600 8.0
+DP 0.034720 5.0
+DP 0.035840 4.0
+DP 0.036960 1.0
+DP 0.038080 3.0
+DP 0.039200 1.0
+DP 0.040320 3.0
+DP 0.041440 1.0
+DP 0.042560 0.0
+DP 0.043680 3.0
+DP 0.044800 0.0
+DP 0.045920 2.0
+DP 0.047040 0.0
+DP 0.048160 3.0
+DP 0.049280 3.0
+DP 0.050400 1.0
+DP 0.051520 0.0
+DP 0.052640 0.0
+DP 0.053760 1.0
+DP 0.054880 3.0
+DP 0.056000 0.0
+DP 0.057120 0.0
+DP 0.058240 0.0
+DP 0.059360 0.0
+DP 0.060480 0.0
+DP 0.061600 1.0
+DP 0.062720 0.0
+DP 0.063840 4.0
+EN

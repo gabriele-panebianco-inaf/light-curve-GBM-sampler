@@ -1,3 +1,4 @@
+import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -16,6 +17,7 @@ from gbm.binning.unbinned import bin_by_time
 from gbm.data import TTE, GbmDetectorCollection
 from gbm.data.primitives import TimeBins
 from gbm.detectors import Detector
+from gbm.finder import TriggerFtp
 
 
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
@@ -58,10 +60,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     LC_info : Light_Curve_Info
         Data of the output light curve file.
     """
-    
-    logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{30*'='}")
 
-    from gbm.finder import TriggerFtp
+    logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{30*'='}")
 
     Temp_Directory = Output_Directory+".Temp/"
     LC_info = Light_Curve_Info()
@@ -126,6 +126,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     msg+= f"Range [{transient['t90_start'].unmasked.value},"
     msg+= f"{transient['t90_start'].unmasked.value+transient['t90'].unmasked.value}] s."
     logger.info(msg)
+    if transient['t90'].unmasked > 400*u.s:
+        logger.warning(f"Careful! This is a very long GRB!")
     logger.info(f"Binning: T90/{time_resolution:.0f} = {bintime:.3f} s.")
 
 
@@ -215,14 +217,20 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         # Check we have the same time bins
         try:
             if len(data.centroids)!=len(bkgd.centroids):
+                logger.error(f"Data length {len(data.centroids)}, background length {len(bkgd.centroids)}.")
                 raise ValueError
             if not np.allclose(data.centroids, bkgd.centroids):
+                logger.error("Data and Background arrays not defined at the same time array.")
                 raise ValueError
             Background_Counts = np.round(bkgd.counts, 0)
+            Background_Uncert = bkgd.count_uncertainty
         except ValueError:
-            logger.warning(f"Data and Background arrays not defined at the same time array. Interpolate background counts.")
+            logger.warning(f"Interpolate background counts and uncertainties.")
             f = interp1d(bkgd.centroids, bkgd.counts)
             Background_Counts = np.round(f(data.centroids),0)
+            f = interp1d(bkgd.centroids, bkgd.count_uncertainty)
+            Background_Uncert = f(data.centroids)
+
         
         # Time shift
         Centroids_shifted = data.centroids - Time_Offset
@@ -230,6 +238,9 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         Excess = data.counts - Background_Counts
         # Clip Negative values to 0
         Excess = np.where(Excess < 0, 0.0, Excess)
+
+        # Uncertainties
+        Uncert = np.where(Excess > 0, data.count_uncertainty + Background_Uncert, 0.0)
 
         # ######################################################
         
@@ -275,12 +286,20 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         fig, ax = plt.subplots(1, figsize = (15, 5), constrained_layout=True )
         plot_title = f"Excess counts of {transient['name']} from GBM detector: {m['detector']}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
         
-        ax.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
-        ax.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted:.3f} s.")
         ax.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90 range.")
         ax.axvline(transient['t90_start'].unmasked.value+transient['t90'].unmasked.value-Time_Offset, color='C3')
         ax.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak range.")
         ax.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
+        ax.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted:.3f} s.")
+        ax.bar(Centroids_shifted,
+           height = 2.0 * Uncert,
+           width = data.widths,
+           bottom = Excess - Uncert,
+           alpha=0.4, color='grey'
+          )
+        ax.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
+
+
 
         ax.set_xlabel('Time [s]', fontsize = 'large')
         ax.set_ylabel('Excess Counts', fontsize = 'large')
