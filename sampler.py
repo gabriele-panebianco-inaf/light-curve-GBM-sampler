@@ -228,8 +228,8 @@ if __name__ == '__main__':
         f.write(f"\n# Info on the Light curve.\n")
         f.write(f"# 1st column is the time point in [s]. GBM times are expressed wrt trigger time, we shifted them to start the simulation from 0.0.\n")
         f.write(f"# After the shift GBM Trigger time is at {LC_info.trigger:.5f} s. Light curve stops at {LC_info.stop:.5f} s. Time resolution is {LC_info.step:.5f} s. There are {LC_info.num} points.\n")
-        f.write(f"# 2nd column is light curve value in [1/s]. Time integral of the light curve is normalized to 1 like a Probability Distribution Function.\n")
-        f.write(f"# The light curve values are excess rates: observed data - best fit background model. Negative excess rates are manually set to 0.0.\n")
+        #f.write(f"# 2nd column is light curve value in [1/s]. Time integral of the light curve is normalized to 1 like a Probability Distribution Function.\n")
+        #f.write(f"# The light curve values are excess rates: observed data - best fit background model. Negative excess rates are manually set to 0.0.\n")
         f.write(f"# We selected the events from GBM detector {LC_info.det} with energy in [{LC_info.emin:.1f},{LC_info.emax:.1f}] keV.\n")
 
 
