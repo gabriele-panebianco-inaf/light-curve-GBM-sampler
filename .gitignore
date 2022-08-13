@@ -7,17 +7,16 @@
 glg_tte*
 *.dat
 *.source
-*.sh
-
+#*.sh
 
 #Folders
-#GBM_burst_archive
 __*
 .vscode
 .ipynb_checkpoints
+#GBM_burst_archive
+Output
 Light_Curves_Extra
 .Temp
-Output
 
 # Files
 GBM_bursts.fits

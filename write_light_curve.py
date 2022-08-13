@@ -18,9 +18,9 @@ from gbm.finder import TriggerFtp
 
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
 FIGURE_FORMAT = ".pdf"
-ERANGE_NAI = ( 10.0,   900.0) #   8 keV -  1 MeV recommended
-ERANGE_BGO = ( 10.0, 50000.0) # 150 keV - 40 MeV recommended
-FLUX_THRESHOLD = 15.0 # ph/s/cm2
+ERANGE_NAI = (  8.0,   900.0) #   8 keV -  1 MeV recommended (8-900 by Eric)
+ERANGE_BGO = (250.0, 40000.0) # 150 keV - 40 MeV recommended (250-40 by Eric)
+FLUX_THRESHOLD = 15.0         # ph/s/cm2
 
 class Light_Curve_Info:
     def __init__(self, output_name="", trigger=0.0, step=0.0, stop=0.0, num=0, det="", emin=0.0, emax=0.0):
@@ -64,16 +64,13 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     if transient['flnc_band_phtflux'].value>FLUX_THRESHOLD:
         time_resolution = 100.0
     else:
-        time_resolution = 20.0
+        time_resolution = 50.0
     bintime = transient['t90'].unmasked.value/ time_resolution
-    # bintime = (transient['flnc_spectrum_stop'].value - transient['flnc_spectrum_start'].value)/200.0
-
     
     # Time range for first time slice (with background intervals)
     time_range = (transient['back_interval_low_start'].unmasked.value,
                   transient['back_interval_high_stop'].unmasked.value
                  )
-
 
     # Time range for background fit
     bkgd_range = [(transient['back_interval_low_start' ].unmasked.value,
@@ -138,7 +135,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         try:
             backfitters.fit(order = 1)
         except:
-            logger.error("Fit with order 1 failed. Run the code without NaIs.")
+            logger.error("Fit with order 1 failed. Try running the code without NaIs.")
             shutil.rmtree(Temp_Directory)
             logger.error("Delete temporary GBM files and directory.")
             raise
@@ -153,9 +150,22 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     data_timebins = cspecs.to_lightcurve(nai_kwargs = {'energy_range':ERANGE_NAI},
                                          bgo_kwargs = {'energy_range':ERANGE_BGO}
                                         )
-    bkgd_timebins = bkgds.integrate_energy(nai_args = ERANGE_NAI,
+    bkgd_timebins = []
+    bkgd_backrates = bkgds.integrate_energy(nai_args = ERANGE_NAI,
                                            bgo_args = ERANGE_BGO
                                           )
+    # Background from BackgroundRates (bugged) to TimeBins
+    for bkgd_t in bkgd_backrates:
+
+        bkgd_t_lo_edges = bkgd_t.time_centroids - 0.5* bkgd_t.time_widths
+        bkgd_t_hi_edges = bkgd_t.time_centroids + 0.5* bkgd_t.time_widths
+        bkgd = TimeBins(bkgd_t.counts, bkgd_t_lo_edges, bkgd_t_hi_edges, bkgd_t.exposure)
+        bkgd = bkgd.slice(LC_time_start, LC_time_stop)
+        bkgd_timebins.append(bkgd)
+
+    # Now implement the sum
+    #data_timebins.append( TimeBins.sum(data_timebins) )
+    #bkgd_timebins.append( TimeBins.sum(bkgd_timebins) )
 
 
     # Slice the light curve data and define Offset
@@ -168,37 +178,29 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     logger.info(f"Shift Time Axis by {Time_Offset:.3f} s. End at {Stop_shifted:.2f} s.")
     
     # Write the light curves
-    for data, bkgd_t, cspec in zip(light_curve_data, bkgd_timebins, cspecs):
-
-        # Background from BackgroundRates (bugged) to TimeBins
-        bkgd_t_lo_edges = bkgd_t.time_centroids - 0.5* bkgd_t.time_widths # data_t.lo_edges
-        bkgd_t_hi_edges = bkgd_t.time_centroids + 0.5* bkgd_t.time_widths # data_t.hi_edges
-        bkgd = TimeBins(bkgd_t.counts, bkgd_t_lo_edges, bkgd_t_hi_edges, bkgd_t.exposure)
-        bkgd = bkgd.slice(LC_time_start, LC_time_stop)
+    for data, bkgd, cspec in zip(light_curve_data, bkgd_timebins, cspecs):
         
         # Check we have the same time bins
         try:
             if len(data.centroids)!=bkgd.centroids:
-                raise
-            np.allclose(data.centroids, bkgd.centroids)
-            Background_Rates = bkgd.rates
-        except:
-            logger.warning(f"Data and Background arrays not defined at the same time array. Interpolate background rates.")
-            f = interp1d(bkgd.centroids, bkgd.rates)
-            Background_Rates = f(data.centroids)
+                raise ValueError
+            if not np.allclose(data.centroids, bkgd.centroids):
+                raise ValueError
+            Background_Counts = bkgd.counts
+        except ValueError:
+            logger.warning(f"Data and Background arrays not defined at the same time array. Interpolate background counts.")
+            f = interp1d(bkgd.centroids, bkgd.counts)
+            Background_Counts = int(f(data.centroids))
         
 
         # Time shift
         Centroids_shifted = data.centroids - Time_Offset
-        
-        # Compute Excess Rates
-        Excess = data.rates - Background_Rates
-
-        # Negative values to 0
-        #Excess = np.where(Excess < 0, 0.0, Excess)
-
-        # Normalize sum to 1
-        #Excess /= np.sum(Excess*data.widths)
+        # Compute Excess Counts
+        Excess = data.counts - Background_Counts
+        # Clip Negative values to 0
+        # Excess = np.where(Excess < 0, 0.0, Excess)
+        # Normalize
+        # Excess /= np.sum(Excess*data.widths)
 
         # ######################################################
         
@@ -223,39 +225,36 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
 
         os.makedirs(os.path.dirname(output), exist_ok=True)
         light_curve_output_name = output+f"{transient['name']}_{cspec.detector}.dat"
-
         logger.info(f"{cspec.detector} | Write Light Curve: {light_curve_output_name}")
 
         # Write the Light Curve as a text file
         with open(light_curve_output_name, 'w') as f:
             f.write(f"IP LINLIN\n")
             for t,d in zip(Centroids_shifted, Excess):
-                f.write(f"DP {t:.6f} {d:.6e}\n")
+                f.write(f"DP {t:.6f} {d:.1f}\n")
             f.write(f"EN\n")
-        
-        # ######################################################
 
         # Define pyplot Figure and Axes
-        plot_title = f"Excess rates of detector: {cspec.detector}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
+        fig, axs = plt.subplots(1, figsize = (15,5), constrained_layout=True )
+
+        plot_title = f"Excess counts of {transient['name']} from GBM detector: {cspec.detector}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
         figure_name = output+f"{transient['name']}_{cspec.detector}"+FIGURE_FORMAT
         
-        fig, axs = plt.subplots(1, figsize = (15,5) )
-        axs.step(Centroids_shifted, Excess, label = 'Excess rates', color = 'C0', where = 'mid')
+        axs.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
         axs.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted} s.")
 
-        axs.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak bin.")
+        axs.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak range.")
         axs.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
-        axs.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90.")
+        axs.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90 range.")
         axs.axvline(transient['t90_start'].unmasked.value+transient['t90'].unmasked.value-Time_Offset, color='C3')
-        axs.axvline(transient['t50_start'].unmasked.value-Time_Offset, color='C4', label="T50.")
-        axs.axvline(transient['t50_start'].unmasked.value+transient['t50'].unmasked.value-Time_Offset, color='C4')
-
+       
         axs.set_xlabel('Time [s]', fontsize = 'large')
-        axs.set_ylabel('Excess rates pdf [1/s]', fontsize = 'large')
+        axs.set_ylabel('Excess Counts', fontsize = 'large')
         axs.set_title(plot_title, fontsize = 'large')
         axs.grid()
         axs.legend()
         fig.savefig(figure_name, facecolor = 'white')
+
     
 
     # Remove GBM files and directory
