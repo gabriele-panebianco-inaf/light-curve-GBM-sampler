@@ -1,9 +1,9 @@
 # Formats
 *.ipynb
-*.dat
 *.tdat
 *.tdat.gz
 glg_tte*
+#*.dat
 *.pdf
 *.source
 *.log
