@@ -16,7 +16,7 @@ from gbm.binning.unbinned import bin_by_time
 from gbm.data import TTE, GbmDetectorCollection
 from gbm.data.primitives import TimeBins
 from gbm.detectors import Detector
-from gbm.finder import TriggerFtp
+
 
 DETECTORS = np.array(['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','na','nb','b0','b1'])
 FIGURE_FORMAT = ".pdf"
@@ -58,7 +58,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     LC_info : Light_Curve_Info
         Data of the output light curve file.
     """
+    
     logger.info(f"{15*'='}EMPIRICAL GBM LIGHT CURVE{30*'='}")
+
+    from gbm.finder import TriggerFtp
+
     Temp_Directory = Output_Directory+".Temp/"
     LC_info = Light_Curve_Info()
     
@@ -273,12 +277,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         
         ax.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
         ax.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted:.3f} s.")
-
-        ax.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak range.")
-        ax.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
         ax.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90 range.")
         ax.axvline(transient['t90_start'].unmasked.value+transient['t90'].unmasked.value-Time_Offset, color='C3')
-       
+        ax.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak range.")
+        ax.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
+
         ax.set_xlabel('Time [s]', fontsize = 'large')
         ax.set_ylabel('Excess Counts', fontsize = 'large')
         ax.set_title(plot_title, fontsize = 'large')

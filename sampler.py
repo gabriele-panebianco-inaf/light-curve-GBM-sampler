@@ -17,6 +17,8 @@ SPECTRAL_TYPE_IMPL = ["flnc"]
 SPECTRAL_FUNC_LIST = ["plaw", "comp", "band", "sbpl"]
 SPECTRAL_FUNC_IMPL = ["band"]
 DEFAULT_CATALOG = "./GBM_burst_archive/GBM_bursts_flnc_band.fits"
+DEFAULT_OUTPUT = "./Output/"
+DEFAULT_LCDIRE = "./Archive_Light_Curve/"
 
 if __name__ == '__main__':
 
@@ -34,8 +36,9 @@ if __name__ == '__main__':
     parser.add_argument("-type", "--spectraltype", help="Spectral Model Type"            , type=str, default="flnc")
     parser.add_argument("-func", "--spectralfunc", help="Spectral Model Function"        , type=str, default="band")
     parser.add_argument("-c"   , "--catalogue"   , help="Input Transient Catalogue"      , type=str, default=DEFAULT_CATALOG)
-    parser.add_argument("-o"   , "--outputdir"   , help="Output Directory"               , type=str, default="./Output/")
-    parser.add_argument("-nai" , "--usenai"      , help="Download and produce LC of NaIs", type=int, default=1)
+    parser.add_argument("-o"   , "--outputdir"   , help="Output Directory"               , type=str, default=DEFAULT_OUTPUT)
+    parser.add_argument("-m"   , "--mode"        , help="0=Light curve from Local archive. 1=Light curve from downloaded TTE data, only BGO. 2=Light curve from downloaded TTE data, both NaI and BGO.", type=int, default=0)
+    parser.add_argument("-l"   , "--lcurvedir"   , help="Local Directory with Light Curve Files.", type=str, default=DEFAULT_LCDIRE)
     args = parser.parse_args()
 
     Random_seed         = args.randomseed
@@ -43,8 +46,8 @@ if __name__ == '__main__':
     Spectral_Model_Type = args.spectraltype
     Spectral_Model_Name = args.spectralfunc
     GBM_Catalog         = args.catalogue
+    Light_Curve_Archive = args.lcdirectory
     Output_Directory    = args.outputdir
-    Use_Nai        = bool(args.usenai)
 
     if not (Spectral_Model_Type in SPECTRAL_TYPE_LIST):
         raise ValueError(f"Spectral Fit type {Spectral_Model_Type} not supported. Supported types: {SPECTRAL_TYPE_LIST}.")
@@ -56,7 +59,17 @@ if __name__ == '__main__':
     if not (Spectral_Model_Name in SPECTRAL_FUNC_IMPL):
         raise NotImplementedError(f"Spectral Model type {Spectral_Model_Name} not implemented. Currently implemented: {SPECTRAL_FUNC_IMPL}.")
     
-
+    if args.mode == 0:
+        Download_Curve = False
+        Use_Nai = False
+    elif args.mode == 1:
+        Download_Curve = True
+        Use_Nai = False
+    elif args.mode == 2:
+        Download_Curve = True
+        Use_Nai = True
+    else:
+        raise ValueError(f"Mode must be 0, 1 or 2. {args.mode} was given.")
     
     
     # Load the GBM Burst Catalog
@@ -137,18 +150,24 @@ if __name__ == '__main__':
 
     logger.info(f"{70*'='}\n")
 
+    if Download_Curve:
+        try:
+            # Gaussian Light Curve
+            #light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
 
-    try:
-        # Gaussian Light Curve
-        #light_curve_output_name = Write_Gaussian_light_curve(transient, logger, Output_Directory)
-        
-        # Empirical Light Curve
-        os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
-        LC_info = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
-    except:
-        logger.error("Delete temporary GBM files and directory")
-        shutil.rmtree(Output_Directory+".Temp/")
-        raise
+            # Empirical Light Curve
+            os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
+            LC_info = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
+        except:
+            logger.error("Delete temporary GBM files and directory")
+            shutil.rmtree(Output_Directory+".Temp/")
+            raise
+    else:
+        logger.info(f"{15*'='}SAMPLE LIGHT CURVE FROM LOCAL DIRECTORY{16*'='}")
+        files = [f for f in os.listdir(Light_Curve_Archive) if isfile(join(Light_Curve_Archive, f))]
+        random_index_lc = rng.integers(0, high=len(files))
+        LC_info = Light_Curve_Info(output_name=files[random_index])
+        logger.info(f"{70*'='}\n")
 
 
 
@@ -224,14 +243,7 @@ if __name__ == '__main__':
         
         f.write(f"\n# GBM Light Curve.\n")
         f.write(f"{SourceName}.Lightcurve     File false {LC_info.output_name}\n")  # false: not repeating
-        
-        f.write(f"\n# Info on the Light curve.\n")
-        f.write(f"# 1st column is the time point in [s]. GBM times are expressed wrt trigger time, we shifted them to start the simulation from 0.0.\n")
-        f.write(f"# After the shift GBM Trigger time is at {LC_info.trigger:.5f} s. Light curve stops at {LC_info.stop:.5f} s. Time resolution is {LC_info.step:.5f} s. There are {LC_info.num} points.\n")
-        #f.write(f"# 2nd column is light curve value in [1/s]. Time integral of the light curve is normalized to 1 like a Probability Distribution Function.\n")
-        #f.write(f"# The light curve values are excess rates: observed data - best fit background model. Negative excess rates are manually set to 0.0.\n")
-        f.write(f"# We selected the events from GBM detector {LC_info.det} with energy in [{LC_info.emin:.1f},{LC_info.emax:.1f}] keV.\n")
-
+       
 
 
     # End

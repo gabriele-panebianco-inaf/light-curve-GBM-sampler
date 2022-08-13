@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # Print info on what we have done until now.
     logger.info(f"GBM Bursts Catalog: {GBM_Catalog}")
     logger.info(f"Number of GRBs in the catalog: {len(table_catalog)}.")
-    logger.info(f"Transient selected: {transient['name']}.\n")
+    logger.info(f"Transient selected: {transient['name']}. Index: {Transient_Index}.\n")
     
     # Transient Parameters
     logger.info(f"{15*'='}TRANSIENT PARAMETERS{35*'='}")
