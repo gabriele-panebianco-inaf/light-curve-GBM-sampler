@@ -71,23 +71,23 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         time_resolution = 100.0
     else:
         time_resolution = 50.0
-    bintime = transient['t90'].unmasked.value/ time_resolution
+    bintime = transient['t90'].value/ time_resolution
     
     # Time range for first time slice (with background intervals)
-    time_range = (transient['back_interval_low_start'].unmasked.value,
-                  transient['back_interval_high_stop'].unmasked.value
+    time_range = (transient['back_interval_low_start'].value,
+                  transient['back_interval_high_stop'].value
                  )
 
     # Time range for background fit
-    bkgd_range = [(transient['back_interval_low_start' ].unmasked.value,
-                   transient['back_interval_low_stop'  ].unmasked.value),
-                  (transient['back_interval_high_start'].unmasked.value,
-                   transient['back_interval_high_stop' ].unmasked.value)
+    bkgd_range = [(transient['back_interval_low_start' ].value,
+                   transient['back_interval_low_stop'  ].value),
+                  (transient['back_interval_high_start'].value,
+                   transient['back_interval_high_stop' ].value)
                  ]
 
     # Time range for second time slice (no background intervals)
-    LC_time_start= np.maximum(transient['flnc_spectrum_start'].value, transient['back_interval_low_stop'  ].unmasked.value)
-    LC_time_stop = np.minimum(transient['flnc_spectrum_stop' ].value, transient['back_interval_high_start'].unmasked.value)
+    LC_time_start= np.maximum(transient['flnc_spectrum_start'].value, transient['back_interval_low_stop'  ].value)
+    LC_time_stop = np.minimum(transient['flnc_spectrum_stop' ].value, transient['back_interval_high_start'].value)
 
 
     
@@ -122,11 +122,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     cspecs = [t.to_phaii(bin_by_time, bintime, time_range = time_range, time_ref = 0.0) for t in ttes]
     cspecs = GbmDetectorCollection.from_list(cspecs)
 
-    msg = f"T90: {transient['t90'].unmasked}. "
-    msg+= f"Range [{transient['t90_start'].unmasked.value},"
-    msg+= f"{transient['t90_start'].unmasked.value+transient['t90'].unmasked.value}] s."
+    msg = f"T90: {transient['t90']}. "
+    msg+= f"Range [{transient['t90_start'].value},"
+    msg+= f"{transient['t90_start'].value+transient['t90'].value}] s."
     logger.info(msg)
-    if transient['t90'].unmasked > 400*u.s:
+    if transient['t90'] > 400*u.s:
         logger.warning(f"Careful! This is a very long GRB!")
     logger.info(f"Binning: T90/{time_resolution:.0f} = {bintime:.3f} s.")
 
@@ -286,10 +286,10 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         fig, ax = plt.subplots(1, figsize = (15, 5), constrained_layout=True )
         plot_title = f"Excess counts of {transient['name']} from GBM detector: {m['detector']}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
         
-        ax.axvline(transient['t90_start'].unmasked.value-Time_Offset, color='C3', label="T90 range.")
-        ax.axvline(transient['t90_start'].unmasked.value+transient['t90'].unmasked.value-Time_Offset, color='C3')
-        ax.axvline(transient['pflx_spectrum_start'].unmasked.value-Time_Offset,color='C2',label="Peak range.")
-        ax.axvline(transient['pflx_spectrum_stop' ].unmasked.value-Time_Offset,color='C2')
+        ax.axvline(transient['t90_start'].value-Time_Offset, color='C3', label="T90 range.")
+        ax.axvline(transient['t90_start'].value+transient['t90'].value-Time_Offset, color='C3')
+        ax.axvline(transient['pflx_spectrum_start'].value-Time_Offset,color='C2',label="Peak range.")
+        ax.axvline(transient['pflx_spectrum_stop' ].value-Time_Offset,color='C2')
         ax.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted:.3f} s.")
         ax.bar(Centroids_shifted,
            height = 2.0 * Uncert,
@@ -323,7 +323,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
 
     
     logger.info(f"{70*'='}\n")
-    return LC_info
+    return LC_info.output_name
 
 
 
@@ -363,11 +363,11 @@ def Write_Gaussian_light_curve(transient, logger, Output_Directory):
     # Evaluate the function in a given time array
     time_step = (transient['flnc_spectrum_stop'] - transient['flnc_spectrum_start']) / 200.0
 
-    time_start= np.maximum(transient['flnc_spectrum_start'], transient['back_interval_low_stop'].unmasked)
-    time_stop = np.minimum(transient['flnc_spectrum_stop' ], transient['back_interval_high_start'].unmasked)
+    time_start= np.maximum(transient['flnc_spectrum_start'], transient['back_interval_low_stop'])
+    time_stop = np.minimum(transient['flnc_spectrum_stop' ], transient['back_interval_high_start'])
 
     time_num = (time_stop - time_start)/time_step
-    time_num = int(np.floor(time_num.unmasked.to("").value))
+    time_num = int(np.floor(time_num.to("").value))
     
     time_array = np.linspace(time_start, time_stop, time_num)
     lc_values = light_curve(time_array)

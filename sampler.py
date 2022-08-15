@@ -9,6 +9,7 @@ import os
 from argparse import ArgumentParser
 from astropy.io import fits
 from astropy.table import QTable
+from os.path import isfile, join
 
 # =============================================================================================
 SPECTRAL_TYPE_LIST = ["flnc", "pflx"]
@@ -160,7 +161,7 @@ if __name__ == '__main__':
     if Download_Curve:
         try:
             os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
-            LC_info = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
+            LC_name = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
         except:
             logger.error("Delete temporary GBM files and directory")
             shutil.rmtree(Output_Directory+".Temp/")
@@ -169,9 +170,9 @@ if __name__ == '__main__':
         logger.info(f"{15*'='}SAMPLE LIGHT CURVE FROM LOCAL DIRECTORY{16*'='}")
         files = [f for f in os.listdir(Light_Curve_Archive) if isfile(join(Light_Curve_Archive, f)) and f.endswith(".dat")]
         random_index_lc = rng.integers(0, high=len(files))
-        LC_info = Light_Curve_Info(output_name=files[random_index_lc])
+        LC_name = files[random_index_lc]
         logger.info(f"Local Light Curve Archive Directory: {Light_Curve_Archive}")
-        logger.info(f"Select light curve {random_index_lc+1}/{len(files)} from Local Archive: {LC_info.output_name}")
+        logger.info(f"Select light curve {random_index_lc+1}/{len(files)} from Local Archive: {LC_name}")
         logger.info(f"{70*'='}\n")
 
     # =========================================================================================
@@ -241,7 +242,7 @@ if __name__ == '__main__':
         f.write(f"{SourceName}.Polarization   RelativeX {polarization_ampli:.5f} {polarization_phase:.5f}\n")
         
         f.write(f"\n# GBM Light Curve.\n")
-        f.write(f"{SourceName}.Lightcurve     File false {LC_info.output_name}\n")  # false: not repeating
+        f.write(f"{SourceName}.Lightcurve     File false {LC_name}\n")  # false: not repeating
     
     # =========================================================================================
 

@@ -85,7 +85,7 @@ if __name__ == '__main__':
     # Empirical Light Curve
     try:        
         os.makedirs(os.path.dirname(Output_Directory+".Temp/"), exist_ok=True)
-        LC_info = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
+        LC_name = Empirical_Light_Curve(transient, logger, Output_Directory, Use_Nai)
     except:
         logger.error("Delete temporary GBM files and directory")
         shutil.rmtree(Output_Directory+".Temp/")
