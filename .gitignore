@@ -3,10 +3,11 @@
 *.tdat
 *.tdat.gz
 glg_tte*
-#*.dat
+*.dat
 *.pdf
 *.source
 *.log
+*.sh
 
 #Folders
 __*
