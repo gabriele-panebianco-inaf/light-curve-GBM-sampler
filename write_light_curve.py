@@ -119,19 +119,71 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     # Load the TTE files, perform time binning to turn them into CSPEC files
     tte_filenames = [f for f in os.listdir(Temp_Directory) if isfile(join(Temp_Directory, f))]
     ttes = [TTE.open(Temp_Directory+f) for f in tte_filenames]
-    cspecs = [t.to_phaii(bin_by_time, bintime, time_range = time_range, time_ref = 0.0) for t in ttes]
-    cspecs = GbmDetectorCollection.from_list(cspecs)
 
+    logger.info(f"Raw TTE Data Ranges.")
+    [logger.info(f"Det: {t.detector} | Energy: [{t.energy_range[0]:.2f}, {t.energy_range[1]:.2f}] keV | Time: [{t.time_range[0]:.3f}, {t.time_range[1]:.3f}] s.") for t in ttes]
+
+
+    #=============================================================================================
+    # Energy Slice the TTEs
+    # ttes_sliced = []
+    # for tte in ttes:
+    #     if Detector.from_str(tte.detector).is_nai():
+    #         ERange = ERANGE_NAI
+    #     else:
+    #         ERange = ERANGE_BGO
+    #     ttes_sliced.append(tte.slice_energy(ERange))
+
+    # logger.info(f"Energy-sliced TTE Data Ranges.")
+    # [logger.info(f"Det: {t.detector} | Energy: [{t.energy_range[0]:.2f}, {t.energy_range[1]:.2f}] keV | Time: [{t.time_range[0]:.3f}, {t.time_range[1]:.3f}] s.") for t in ttes_sliced]
+
+    # # Merges
+    # tte_nai_list = [tte for tte in ttes_sliced if Detector.from_str(tte.detector).is_nai()]
+    # tte_nai    = TTE.merge(tte_nai_list)
+
+    # tte_bgo      = [tte for tte in ttes if not Detector.from_str(tte.detector).is_nai()]
+    # if len(tte_bgo) == 1:
+    #     tte_bgo = tte_bgo[0]
+    # else:
+    #     raise ValueError(f"Downloaded {len(tte_bgo)} BGO TTE.")
+    
+
+    # tte_merged = TTE.merge(ttes_sliced)
+    # if tte_nai.detector != 'n0':
+    #     tte_merged.set_properties(detector='n0', trigtime=tte_merged.trigtime)
+    # else:
+    #     tte_merged.set_properties(detector='n1', trigtime=tte_merged.trigtime)
+    
+    # ttes = [tte_nai, tte_bgo, tte_merged]
+
+    # # Metadata: detector, energy range.
+    # meta = QTable(
+    #       names = ('detector', 'min_energy', 'max_energy'),
+    #       dtype = ('str', 'float', 'float')
+    #       )
+    # meta.add_row( ("Merge"+''.join(["_"+t.detector for t in tte_nai_list]), ERANGE_NAI[0], ERANGE_NAI[1]) )
+    # meta.add_row( (tte_bgo.detector, ERANGE_BGO[0], ERANGE_BGO[1]) )
+    # meta.add_row( ("Merge"+''.join(["_"+t.detector for t in tte_nai_list])+"_"+tte_bgo.detector, ERANGE_NAI[0], ERANGE_BGO[1]) )
+ 
+    #=============================================================================================
+
+    # Time Binning and Slice
     msg = f"T90: {transient['t90']}. "
     msg+= f"Range [{transient['t90_start'].value},"
     msg+= f"{transient['t90_start'].value+transient['t90'].value}] s."
+
     logger.info(msg)
     if transient['t90'] > 400*u.s:
         logger.warning(f"Careful! This is a very long GRB!")
     logger.info(f"Binning: T90/{time_resolution:.0f} = {bintime:.3f} s.")
 
+    cspecs = [t.to_phaii(bin_by_time, bintime, time_range = time_range, time_ref = 0.0) for t in ttes]    
+    cspecs = GbmDetectorCollection.from_list(cspecs)
+
 
     [logger.info(f"Det: {c.detector} | Energy: [{c.energy_range[0]:.2f}, {c.energy_range[1]:.2f}] keV | Time: [{c.time_range[0]:.3f}, {c.time_range[1]:.3f}] s.") for c in cspecs]
+    #[logger.info(f"Det: {m['detector']} | Energy: [{m['min_energy']:.2f}, {m['max_energy']:.2f}] keV | Time: [{c.time_range[0]:.3f}, {c.time_range[1]:.3f}] s.") for m, c in zip(meta, cspecs)]
+
     
 
     # Fit Background
@@ -153,20 +205,21 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
             logger.error("Delete temporary GBM files and directory.")
             raise
 
-
-
     bkgds = backfitters.interpolate_bins(cspecs.data()[0].tstart, cspecs.data()[0].tstop)
     bkgds = GbmDetectorCollection.from_list(bkgds, dets=cspecs.detector())
 
 
     # Energy slice&integration of data and background
-    data_timebins = cspecs.to_lightcurve(nai_kwargs = {'energy_range':ERANGE_NAI},
-                                         bgo_kwargs = {'energy_range':ERANGE_BGO}
-                                        )
+    data_timebins = cspecs.to_lightcurve(
+        nai_kwargs = {'energy_range':ERANGE_NAI},
+        bgo_kwargs = {'energy_range':ERANGE_BGO}
+        )
     bkgd_timebins = []
-    bkgd_backrates = bkgds.integrate_energy(nai_args = ERANGE_NAI,
-                                           bgo_args = ERANGE_BGO
-                                          )
+    bkgd_backrates = bkgds.integrate_energy(
+        nai_args = ERANGE_NAI,
+        bgo_args = ERANGE_BGO
+        )
+    
     # Background from BackgroundRates (.slice_time is bugged) to TimeBins
     for bkgd_t in bkgd_backrates:
 
@@ -176,7 +229,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         bkgd = bkgd.slice(LC_time_start, LC_time_stop)
         bkgd_timebins.append(bkgd)
 
-
+    # ========================================================================================
     # Metadata: detector, energy range.
     meta = QTable(
         names = ('detector', "Is_NaI", "Is_Sum", 'min_energy', 'max_energy'),
@@ -192,10 +245,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     sum_is_NaI = np.all(meta['Is_NaI'])
     sum_min_energy = np.amin([c.energy_range[0] for c in cspecs])
     sum_max_energy = np.amax([c.energy_range[1] for c in cspecs])
-
     meta.add_row( (sum_detector, sum_is_NaI, True, sum_min_energy, sum_max_energy) )
-
-
+    # ========================================================================================
 
 
     # Slice the light curve data and define Offset
@@ -299,17 +350,11 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
           )
         ax.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
 
-
-
         ax.set_xlabel('Time [s]', fontsize = 'large')
         ax.set_ylabel('Excess Counts', fontsize = 'large')
         ax.set_title(plot_title, fontsize = 'large')
         ax.grid()
         ax.legend()
-
-        #figure_name = Output_Directory+f"{transient['name']}_{m['detector']}"+FIGURE_FORMAT
-        #fig.savefig(figure_name, facecolor = 'white')
-
         pp.savefig(fig)
 
     pp.close()
