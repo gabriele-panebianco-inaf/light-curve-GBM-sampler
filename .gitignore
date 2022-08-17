@@ -2,18 +2,20 @@
 *.ipynb
 *.tdat
 *.tdat.gz
-#*.fits
-*.pdf
 glg_tte*
 *.dat
+*.pdf
 *.source
-#*.sh
+*.log
+*.sh
 
 #Folders
 __*
 .vscode
 .ipynb_checkpoints
 #GBM_burst_archive
+Archive_Light_Curve
+Logs
 Output
 Light_Curves_Extra
 .Temp

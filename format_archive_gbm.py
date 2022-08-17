@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from astropy.table import QTable
+from astropy.table import QTable, MaskedColumn
+from astropy.utils.masked import Masked
 import astropy.units as u
 
 filename = "/home/gabriele/Documents/fermiGBM/light-curve-GBM-sampler/GBM_burst_archive/heasarc_fermigbrst.tdat"
@@ -242,6 +243,15 @@ condition = np.where(qt['flnc_band_ampl'].mask == True)[0]
 print(f"Drop {len(condition)} rows for no BAND")
 qt.remove_rows(condition)
 
+condition = np.where(qt['t90'].mask == True)[0]
+print(f"Drop {len(condition)} rows for no T90")
+qt.remove_rows(condition)
+
+condition = np.where(qt['pflx_spectrum_start'].mask == True)[0]
+print(f"Drop {len(condition)} rows for no pflx time range")
+qt.remove_rows(condition)
+
+
 # condition = np.where(qt['flnc_band_redchisq'] > 10.0)[0]
 # print(f"Drop {len(condition)} for reduced chi2 > 10.")
 # qt.remove_rows(condition)
@@ -258,6 +268,28 @@ qt.remove_rows(condition)
 # condition = np.where(E_break < 10.0*u.keV)[0]
 # print(f"Drop {len(condition)} for E_break < 10 keV.")
 # qt.remove_rows(condition)
+
+# Remove mask from the columns with no masked values
+for key in qt.keys():
+
+    if isinstance(qt[key], Masked):
+        how_many_masked = len(qt[key].mask.nonzero()[0])
+        if how_many_masked == 0:
+            qt[key] = qt[key].unmasked
+    elif isinstance(qt[key], MaskedColumn):
+        how_many_masked = len(qt[key].mask.nonzero()[0])
+        if how_many_masked == 0:
+            qt[key] = qt[key].data.data
+
+
+print("Masked Columns")
+for key in qt.keys():
+    try:
+        how_many_masked = len(qt[key].mask.nonzero()[0])
+        print(f"Masked {key}: {how_many_masked} values. Type {type(qt[key])}")
+    except AttributeError:
+        pass
+
 
 print(f"Write flnc band selection: {len(qt)} entries.")
 qt.write(Output+"GBM_bursts_flnc_band.fits", format='fits', overwrite=True)
