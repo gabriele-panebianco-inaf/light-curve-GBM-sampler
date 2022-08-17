@@ -72,7 +72,8 @@ if __name__ == '__main__':
     beta  = transient[label+'beta' ]
     flux  = transient[label+'phtflux']
     
-    logger.info(f"Galactic coordinates: l={transient['lii'].value:.3f} deg, b={transient['bii'].value:.3f} deg.")
+    logger.info(f"Galactic longitude l={transient['lii'].value:.3f} deg.")
+    logger.info(f"Galactic latitude  b={transient['bii'].value:.3f} deg.")
     logger.info(f"{label}phtflux : {flux.value:.3f} {flux.unit}.")
     logger.info(f"{label}ampl  : {ampl.value:.3e} {ampl.unit}.")
     logger.info(f"{label}epeak : {epeak.value:.1f} {epeak.unit}.")

@@ -136,34 +136,40 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
 
     # logger.info(f"Energy-sliced TTE Data Ranges.")
     # [logger.info(f"Det: {t.detector} | Energy: [{t.energy_range[0]:.2f}, {t.energy_range[1]:.2f}] keV | Time: [{t.time_range[0]:.3f}, {t.time_range[1]:.3f}] s.") for t in ttes_sliced]
-
-    # # Merges
-    # tte_nai_list = [tte for tte in ttes_sliced if Detector.from_str(tte.detector).is_nai()]
-    # tte_nai    = TTE.merge(tte_nai_list)
-
-    # tte_bgo      = [tte for tte in ttes if not Detector.from_str(tte.detector).is_nai()]
-    # if len(tte_bgo) == 1:
-    #     tte_bgo = tte_bgo[0]
-    # else:
-    #     raise ValueError(f"Downloaded {len(tte_bgo)} BGO TTE.")
+    #=============================================================================================
     
+    #=============================================================================================
+    # Merge the NaIs.
+    tte_nai_list = [tte for tte in ttes if Detector.from_str(tte.detector).is_nai()]
+    tte_nai    = TTE.merge(tte_nai_list)
 
+    tte_bgo      = [tte for tte in ttes if not Detector.from_str(tte.detector).is_nai()]
+    if len(tte_bgo) == 1:
+        tte_bgo = tte_bgo[0]
+    else:
+        raise ValueError(f"Downloaded {len(tte_bgo)} BGO TTE.")
+    
     # tte_merged = TTE.merge(ttes_sliced)
     # if tte_nai.detector != 'n0':
     #     tte_merged.set_properties(detector='n0', trigtime=tte_merged.trigtime)
     # else:
     #     tte_merged.set_properties(detector='n1', trigtime=tte_merged.trigtime)
     
+    ttes = [tte_nai, tte_bgo]
     # ttes = [tte_nai, tte_bgo, tte_merged]
 
-    # # Metadata: detector, energy range.
-    # meta = QTable(
-    #       names = ('detector', 'min_energy', 'max_energy'),
-    #       dtype = ('str', 'float', 'float')
-    #       )
-    # meta.add_row( ("Merge"+''.join(["_"+t.detector for t in tte_nai_list]), ERANGE_NAI[0], ERANGE_NAI[1]) )
+    # Metadata: detector, energy range.
+    meta = QTable(names = ('detector', 'min_energy', 'max_energy'),
+                  dtype = ('str', 'float', 'float32')
+                 )
+    if len(tte_nai_list) ==1:
+        Name_merged_NaIs = tte_nai_list[0].detector
+    else:
+        Name_merged_NaIs = "Merge"+''.join(["_"+t.detector for t in tte_nai_list])
+    Name_merged_dets = "Sum"  +''.join(["_"+t.detector for t in tte_nai_list])+"_"+tte_bgo.detector
+    # meta.add_row( (Name_merged_NaIs, ERANGE_NAI[0], ERANGE_NAI[1]) )
     # meta.add_row( (tte_bgo.detector, ERANGE_BGO[0], ERANGE_BGO[1]) )
-    # meta.add_row( ("Merge"+''.join(["_"+t.detector for t in tte_nai_list])+"_"+tte_bgo.detector, ERANGE_NAI[0], ERANGE_BGO[1]) )
+    # meta.add_row( (Name_merged_dets, ERANGE_NAI[0], ERANGE_BGO[1]) )
  
     #=============================================================================================
 
@@ -181,7 +187,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
     cspecs = GbmDetectorCollection.from_list(cspecs)
 
 
-    [logger.info(f"Det: {c.detector} | Energy: [{c.energy_range[0]:.2f}, {c.energy_range[1]:.2f}] keV | Time: [{c.time_range[0]:.3f}, {c.time_range[1]:.3f}] s.") for c in cspecs]
+    #[logger.info(f"Det: {c.detector} | Energy: [{c.energy_range[0]:.2f}, {c.energy_range[1]:.2f}] keV | Time: [{c.time_range[0]:.3f}, {c.time_range[1]:.3f}] s.") for c in cspecs]
     #[logger.info(f"Det: {m['detector']} | Energy: [{m['min_energy']:.2f}, {m['max_energy']:.2f}] keV | Time: [{c.time_range[0]:.3f}, {c.time_range[1]:.3f}] s.") for m, c in zip(meta, cspecs)]
 
     
@@ -231,21 +237,22 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
 
     # ========================================================================================
     # Metadata: detector, energy range.
-    meta = QTable(
-        names = ('detector', "Is_NaI", "Is_Sum", 'min_energy', 'max_energy'),
-        dtype = ('str', 'bool', 'bool', 'float', 'float32')
-        )
-    [meta.add_row( (c.detector, Detector.from_str(c.detector).is_nai(), False, c.energy_range[0], c.energy_range[1]) ) for c in cspecs]
+    for c in cspecs:
+        if Detector.from_str(c.detector).is_nai():
+            erange_low  = ERANGE_NAI[0]
+            erange_high = ERANGE_NAI[1]
+            name = Name_merged_NaIs
+        else:
+            erange_low  = ERANGE_BGO[0]
+            erange_high = ERANGE_BGO[1]
+            name = c.detector
+        meta.add_row( (name, np.maximum(c.energy_range[0], erange_low), np.minimum(c.energy_range[1], erange_high)) )
 
     # Now implement the sum
     data_timebins.append( TimeBins.sum(data_timebins) )
     bkgd_timebins.append( TimeBins.sum(bkgd_timebins) )
-
-    sum_detector = "Sum"+''.join(["_"+c.detector for c in cspecs])
-    sum_is_NaI = np.all(meta['Is_NaI'])
-    sum_min_energy = np.amin([c.energy_range[0] for c in cspecs])
-    sum_max_energy = np.amax([c.energy_range[1] for c in cspecs])
-    meta.add_row( (sum_detector, sum_is_NaI, True, sum_min_energy, sum_max_energy) )
+    #sum_detector = "Sum"+''.join(["_"+c.detector for c in cspecs])
+    meta.add_row( (Name_merged_dets, np.amin(meta['min_energy']), np.amax(meta['max_energy'])) )
     # ========================================================================================
 
 
@@ -293,18 +300,7 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
         # Uncertainties
         Uncert = np.where(Excess > 0, data.count_uncertainty + Background_Uncert, 0.0)
 
-        # ######################################################
-        
-        # Define energy range and directory where to save the current light curve
-        if m['Is_Sum']:
-            erange_low  = np.maximum(m['min_energy'], ERANGE_NAI[0])
-            erange_high = np.minimum(m['max_energy'], ERANGE_BGO[1])
-        elif m['Is_NaI']:
-            erange_low  = np.maximum(m['min_energy'], ERANGE_NAI[0])
-            erange_high = np.minimum(m['max_energy'], ERANGE_NAI[1])
-        else:
-            erange_low  = np.maximum(m['min_energy'], ERANGE_BGO[0])
-            erange_high = np.minimum(m['max_energy'], ERANGE_BGO[1])
+        # ######################################################     
         
         LC_info = Light_Curve_Info(output_name="./"+f"{transient['name']}_{m['detector']}.dat",
                            trigger = Trigger_shifted,
@@ -312,8 +308,8 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
                            stop = Stop_shifted,
                            num  = len(Centroids_shifted),
                            det  = m['detector'],
-                           emin = erange_low,
-                           emax = erange_high
+                           emin = m['min_energy'],
+                           emax = m['max_energy']
                           )
 
         # Write the Light Curve as a text file
@@ -335,18 +331,28 @@ def Empirical_Light_Curve(transient, logger, Output_Directory, Use_NaI):
 
         # Define pyplot Figure and Axes
         fig, ax = plt.subplots(1, figsize = (15, 5), constrained_layout=True )
-        plot_title = f"Excess counts of {transient['name']} from GBM detector: {m['detector']}. Energy range [{erange_low:.1f}, {erange_high:.1f}] keV."
+        plot_title = f"Excess counts of {transient['name']} from GBM detector: {m['detector']}. Energy range [{LC_info.emin:.1f}, {LC_info.emax:.1f}] keV."
         
-        ax.axvline(transient['t90_start'].value-Time_Offset, color='C3', label="T90 range.")
-        ax.axvline(transient['t90_start'].value+transient['t90'].value-Time_Offset, color='C3')
-        ax.axvline(transient['pflx_spectrum_start'].value-Time_Offset,color='C2',label="Peak range.")
-        ax.axvline(transient['pflx_spectrum_stop' ].value-Time_Offset,color='C2')
-        ax.axvline(Trigger_shifted, color='C1', label=f"Trigger: {Trigger_shifted:.3f} s.")
+        ax.axvline(Trigger_shifted, color='C1',lw=2, label=f"Trigger: {Trigger_shifted:.3f} s.")
+        ax.axvline(transient['t90_start'].value-Time_Offset, color='C3', ls='-.', label=f"Range T90: {transient['t90'].value:.3f} s.")
+        ax.axvline(transient['t90_start'].value+transient['t90'].value-Time_Offset, color='C3', ls='-.',)
+        #ax.axvline(transient['pflx_spectrum_start'].value-Time_Offset,color='C2',label="Peak range.")
+        #ax.axvline(transient['pflx_spectrum_stop' ].value-Time_Offset,color='C2')
+        condition_peak = np.logical_and(
+            Centroids_shifted>(transient['pflx_spectrum_start'].value-Time_Offset),
+            Centroids_shifted<(transient['pflx_spectrum_stop' ].value-Time_Offset)
+        )
+        # condition_peak = np.full(Centroids_shifted.size, False)
+        # idx_peak_start = np.argmin(np.abs(Centroids_shifted - (transient['pflx_spectrum_start'].value-Time_Offset)))
+        # idx_peak_stop  = np.argmin(np.abs(Centroids_shifted - (transient['pflx_spectrum_stop' ].value-Time_Offset)))
+        # condition_peak[idx_peak_start:idx_peak_stop] = True
+        ax.fill_between(Centroids_shifted[condition_peak], 0.0, Excess[condition_peak], alpha=0.2, step='mid', color='C2', label='Peak')
+
         ax.bar(Centroids_shifted,
            height = 2.0 * Uncert,
            width = data.widths,
            bottom = Excess - Uncert,
-           alpha=0.4, color='grey'
+           alpha=0.4, color='grey', label='Errors'
           )
         ax.step(Centroids_shifted, Excess, label = 'Excess counts', color = 'C0', where = 'mid')
 
