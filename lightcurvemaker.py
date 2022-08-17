@@ -48,10 +48,10 @@ if __name__ == '__main__':
     transient = table_catalog[Transient_Index]
 
     # Make Output Directories
-    os.makedirs(os.path.dirname(Output_Directory+"Logs/"), exist_ok=True)
+    os.makedirs(os.path.dirname(Output_Directory), exist_ok=True)
 
     # Define Logger for file too
-    f_handler = logging.FileHandler(Output_Directory+f"Logs/{transient['name']}.log", mode='w')
+    f_handler = logging.FileHandler(Output_Directory+f"{transient['name']}.log", mode='w')
     f_handler.setLevel(logging.INFO)
     f_handler.setFormatter(logging.Formatter('%(asctime)s. %(levelname)s: %(message)s'))# -%(name)s
     logger.addHandler(f_handler)
