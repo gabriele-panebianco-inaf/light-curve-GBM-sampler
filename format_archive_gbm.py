@@ -251,6 +251,9 @@ condition = np.where(qt['pflx_spectrum_start'].mask == True)[0]
 print(f"Drop {len(condition)} rows for no pflx time range")
 qt.remove_rows(condition)
 
+condition = np.where(qt['t90'] > 500.0*u.s)[0]
+print(f"Drop {len(condition)} for t90 > 500 s.")
+qt.remove_rows(condition)
 
 # condition = np.where(qt['flnc_band_redchisq'] > 10.0)[0]
 # print(f"Drop {len(condition)} for reduced chi2 > 10.")
@@ -258,15 +261,6 @@ qt.remove_rows(condition)
 
 # condition = np.where(qt['error_radius'] > 40.0*u.deg)[0]
 # print(f"Drop {len(condition)} for error radius > 40 deg.")
-# qt.remove_rows(condition)
-
-condition = np.where(qt['t90'] > 500.0*u.s)[0]
-print(f"Drop {len(condition)} for t90 > 500 s.")
-qt.remove_rows(condition)
-
-# E_break = qt['flnc_band_epeak'] / (2.0+qt['flnc_band_alpha'])
-# condition = np.where(E_break < 10.0*u.keV)[0]
-# print(f"Drop {len(condition)} for E_break < 10 keV.")
 # qt.remove_rows(condition)
 
 # Remove mask from the columns with no masked values
@@ -291,14 +285,35 @@ for key in qt.keys():
         pass
 
 
-print(f"Write flnc band selection: {len(qt)} entries.")
-qt.write(Output+"GBM_bursts_flnc_band.fits", format='fits', overwrite=True)
 
+# Extra cuts for the flnc_band only
+print("\nExtra cuts for flnc_band only")
+qt_flnc_band = qt.copy()
+qt_flnc_band['flnc_band_ebreak'] = qt_flnc_band['flnc_band_epeak'] / (2.0+qt_flnc_band['flnc_band_alpha'])
+simulation_energy_min =    10.0*u.keV
+simulation_energy_max = 40000.0*u.keV
+
+condition = np.where(qt_flnc_band['flnc_band_ebreak'] < simulation_energy_min)[0]
+print(f"Drop {len(condition)} for E_break < {simulation_energy_min}.")
+qt_flnc_band.remove_rows(condition)
+
+condition = np.where(qt_flnc_band['flnc_band_ebreak'] > simulation_energy_max)[0]
+print(f"Drop {len(condition)} for E_break > {simulation_energy_max}.")
+qt_flnc_band.remove_rows(condition)
+
+condition = np.where(qt_flnc_band['flnc_band_alpha'] > 0.0)[0]
+print(f"Drop {len(condition)} for alpha > 0.")
+qt_flnc_band.remove_rows(condition)
+
+print(f"Write flnc band selection: {len(qt_flnc_band)} entries.")
+qt_flnc_band.write(Output+"GBM_bursts_flnc_band.fits", format='fits', overwrite=True)
 
 # Strong GRB selection
-condition = np.where(qt['flnc_band_phtflux'] < 15.0*u.Unit("s-1 cm-2"))[0]
+print("\nExtra cuts for flnc_band only")
+Flux_threshold = 15*u.Unit("s-1 cm-2")
+condition = np.where(qt['flnc_band_phtflux'] < Flux_threshold)[0]
 print(f"Drop {len(condition)} for flux < 15 ph/s/cm2.")
 qt.remove_rows(condition)
 
 print(f"Write strong GRB selection: {len(qt)} entries.")
-qt.write(Output+"GBM_bursts_flnc_band_flux15.fits", format='fits', overwrite=True)
+qt.write(f"{Output}GBM_bursts_flnc_band_flux{Flux_threshold.value:.0f}.fits", format='fits', overwrite=True)

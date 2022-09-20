@@ -219,6 +219,8 @@ if __name__ == '__main__':
         SourceName_Beam = "FarFieldPointSource" # This should work for GRBs
         SourceParticleType = 1                  # 1=photon
         SourceName_Spectrum = "Band"
+        Flux_integr_energy_min =    10.0 # transient['flu_low'].value
+        Flux_integr_energy_max = 40000.0 # transient['flu_high'].value
 
         f.write(f"\n# Run and source parameters\n")
         f.write(f"Run                         {RunName}\n")
@@ -233,7 +235,7 @@ if __name__ == '__main__':
         f.write(f"{SourceName}.Orientation    Galactic Fixed {bii} {lii}\n")
         
         f.write(f"\n# Band Spectrum parameters: Flux integration min and max energies, alpha, beta, ebreak\n")
-        f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {transient['flu_low'].value} {transient['flu_high'].value} {alpha:.3f} {beta:.3f} {ebreak.value:.3f}\n")
+        f.write(f"{SourceName}.Spectrum       {SourceName_Spectrum} {Flux_integr_energy_min} {Flux_integr_energy_max} {alpha:.3f} {beta:.3f} {ebreak.value:.3f}\n")
         
         f.write(f"\n# Average photon flux, in photon/cm2/s, for a Band function law fit to a single spectrum over the duration of the burst.\n")
         f.write(f"{SourceName}.Flux           {flux.value:.4f}\n")
