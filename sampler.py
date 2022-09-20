@@ -103,10 +103,10 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(Output_Directory), exist_ok=True)
 
     # 3.2 - Define Logger for file too
-    f_handler = logging.FileHandler(Output_Directory+f"{transient['name']}.log", mode='w')
-    f_handler.setLevel(logging.INFO)
-    f_handler.setFormatter(logging.Formatter('%(asctime)s. %(levelname)s: %(message)s'))# -%(name)s
-    logger.addHandler(f_handler)
+    # f_handler = logging.FileHandler(Output_Directory+f"{transient['name']}.log", mode='w')
+    # f_handler.setLevel(logging.INFO)
+    # f_handler.setFormatter(logging.Formatter('%(asctime)s. %(levelname)s: %(message)s'))# -%(name)s
+    # logger.addHandler(f_handler)
 
     # 3.3 - Print info on what we have done until now.
     logger.info(f"GBM Bursts Catalog: {GBM_Catalog}")
