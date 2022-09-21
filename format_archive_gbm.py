@@ -290,8 +290,8 @@ for key in qt.keys():
 print("\nExtra cuts for flnc_band only")
 qt_flnc_band = qt.copy()
 qt_flnc_band['flnc_band_ebreak'] = qt_flnc_band['flnc_band_epeak'] / (2.0+qt_flnc_band['flnc_band_alpha'])
-simulation_energy_min =    10.0*u.keV
-simulation_energy_max = 40000.0*u.keV
+simulation_energy_min =   10.0*u.keV
+simulation_energy_max = 5000.0*u.keV
 
 condition = np.where(qt_flnc_band['flnc_band_ebreak'] < simulation_energy_min)[0]
 print(f"Drop {len(condition)} for E_break < {simulation_energy_min}.")
@@ -309,8 +309,9 @@ print(f"Write flnc band selection: {len(qt_flnc_band)} entries.")
 qt_flnc_band.write(Output+"GBM_bursts_flnc_band.fits", format='fits', overwrite=True)
 
 # Strong GRB selection
-print("\nExtra cuts for flnc_band only")
 Flux_threshold = 15*u.Unit("s-1 cm-2")
+
+print(f"\nExtra cuts for flnc_band{Flux_threshold.value:.0f} only")
 condition = np.where(qt['flnc_band_phtflux'] < Flux_threshold)[0]
 print(f"Drop {len(condition)} for flux < 15 ph/s/cm2.")
 qt.remove_rows(condition)

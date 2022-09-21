@@ -219,8 +219,8 @@ if __name__ == '__main__':
         SourceName_Beam = "FarFieldPointSource" # This should work for GRBs
         SourceParticleType = 1                  # 1=photon
         SourceName_Spectrum = "Band"
-        Flux_integr_energy_min =    10.0 # transient['flu_low'].value
-        Flux_integr_energy_max = 40000.0 # transient['flu_high'].value
+        Flux_integr_energy_min =   10.0 # transient['flu_low'].value
+        Flux_integr_energy_max = 5000.0 # transient['flu_high'].value
 
         f.write(f"\n# Run and source parameters\n")
         f.write(f"Run                         {RunName}\n")
